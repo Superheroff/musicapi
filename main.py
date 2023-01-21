@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request, redirect
 from flask_cors import CORS
+import xhsapi
 
 application = Flask(__name__, static_folder='templates/static')
 bootstrap = Bootstrap(application)
