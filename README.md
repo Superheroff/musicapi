@@ -8,6 +8,7 @@
 - 获取歌单列表信息
 - 请求地址：`http://api2.52jan.com`
 - 路径：`/music/songlist`
+- 请求方式：`POST`
 - 酷狗音乐示例：`http://api2.52jan.com/music/songlist?server=kugou&id=6222311`
 - 网易云音乐示例：`http://api2.52jan.com/music/songlist?server=wyy&id=7480897649`
 
