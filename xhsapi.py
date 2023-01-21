@@ -210,7 +210,10 @@ class WangYiYun():
     def get_lrc(self, song_id):
         url = f'https://music.163.com/api/song/lyric?id={song_id}&lv=1&kv=1&tv=-1'
         ret = requests.get(url).json()
-        return ret['lrc']['lyric']
+        lrc = ret['lrc']['lyric']
+        if lrc == '':
+            lrc = ret['klyric']['lyric']
+        return lrc
 
 
 if __name__ == '__main__':
