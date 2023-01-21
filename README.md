@@ -5,7 +5,7 @@
 - 浏览[我的歌单](http://www.app966.cn/music/)查看效果
 
 # 接口说明
-- 获取歌单列表信息
+- **获取歌单列表信息**
 - 请求地址：`http://api2.52jan.com`
 - 路径：`/music/songlist`
 - 请求方式：`POST`
