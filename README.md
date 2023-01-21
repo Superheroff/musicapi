@@ -11,7 +11,7 @@
 - 请求方式：`POST`
 - 酷狗音乐示例：`http://api2.52jan.com/music/songlist?server=kugou&id=6222311`
 - 网易云音乐示例：`http://api2.52jan.com/music/songlist?server=wyy&id=7480897649`
-- `尽量不要用我的接口，下载源码自己部署吧`
+- 尽量不要用我的接口，下载源码自己部署吧
 - 查看[接口调用情况](https://www.app966.cn/charts/)
 
 参数名|参数类型|参数描述|参数示例
