@@ -75,7 +75,7 @@ def kugou(ids):
         for i in json_data['data']['info']:
             name = i['name'].split(' - ')
             song_id = i['hash']
-            data_list.append({'title': name[1], 'author': name[0], 'url': 'http://www.52jan.com/kugou/%s' % song_id, 'pic': i['cover'].replace('/{size}', ''), 'lrc': 'https://www.52jan.com/kugou/lrc/%s.lrc' % song_id})
+            data_list.append({'title': name[1], 'author': name[0], 'url': 'http://api2.52jan.com/kugou/%s' % song_id, 'pic': i['cover'].replace('/{size}', ''), 'lrc': 'http://api2.52jan.com/kugou/lrc/%s.lrc' % song_id})
     else:
         pass
     # print(data_list)
@@ -165,9 +165,9 @@ class WangYiYun():
             for n in i['artists']:
                 author += n['name'] + '/'
             self.data_list.append({'title': i['name'], 'author': author[:-1],
-                                    'url': 'http://www.52jan.com/wyy/%s' % song_id,
+                                    'url': 'http://api2.52jan.com/wyy/%s' % song_id,
                                     'pic': i['album']['picUrl'],
-                                    'lrc': 'https://www.52jan.com/wyy/lrc/%s.lrc' % song_id})
+                                    'lrc': 'http://api2.52jan.com/wyy/lrc/%s.lrc' % song_id})
 
     def get_wyy_playurl(self, music_id):
         url = 'https://music.163.com/weapi/song/enhance/player/url?csrf_token=' + self.csrf_token
