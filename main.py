@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, redirect
 from flask_cors import CORS
 import xhsapi
-
+# red_updata_music()这个方法我用来记录接口访问次数的，你们删除即可
 application = Flask(__name__, static_folder='templates/static')
 bootstrap = Bootstrap(application)
 application.config['JSON_AS_ASCII'] = False
