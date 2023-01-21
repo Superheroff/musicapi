@@ -6,7 +6,10 @@
 
 # 接口说明
 - 获取歌单列表信息
-请求地址：`http://api2.52jan.com/music/songlist`
+- 请求地址：`http://api2.52jan.com`
+- 路径：`/music/songlist`
+- 酷狗音乐示例：`http://api2.52jan.com/music/songlist?server=kugou&id=6222311`
+- 网易云音乐示例：`http://api2.52jan.com/music/songlist?server=wyy&id=7480897649`
 
 参数名|参数类型|参数描述|参数示例
 ---|---|---|---
