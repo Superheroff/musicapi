@@ -34,6 +34,20 @@ def wyy_lrc(song_id):
     ret = wyy.get_lrc(song_id)
     return ret
 
+@application.route(rule="/qqmusic/<song_id>")
+def qqmusic_url(song_id):
+    xhsapi.red_updata_music()
+    qqmusic = xhsapi.qqmusic()
+    ret = qqmusic.get_music_vkey(song_id)
+    return redirect(ret, code=301)
+
+@application.route(rule="/qqmusic/lrc/<song_id>.lrc")
+def qqmusic_lrc(song_id):
+    xhsapi.red_updata_music()
+    qqmusic = xhsapi.qqmusic()
+    ret = qqmusic.get_lyric(song_id)
+    return ret
+
 @application.route('/music/songlist', methods=['POST', 'GET'])
 def music_songlist():
     server = request.values.get('server', '')
@@ -46,6 +60,10 @@ def music_songlist():
             xhsapi.red_updata_music()
             wyy = xhsapi.WangYiYun()
             resp = wyy.get_wyy_discover(songs_id)
+        elif server == 'qqmusic':
+            xhsapi.red_updata_music()
+            qqmusic = xhsapi.qqmusic()
+            resp = qqmusic.get_music_list(songs_id)
         else:
             resp = {'msg': '暂不支持此平台'}
     else:
