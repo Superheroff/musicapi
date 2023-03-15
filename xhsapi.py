@@ -215,12 +215,105 @@ class WangYiYun():
             lrc = ret['klyric']['lyric']
         return lrc
 
+    class qqmusic():
+    def __init__(self):
+        self.header = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36',
+            'referer': 'https://y.qq.com/'
+        }
+
+    def encrypt(self, param):
+        k1 = {"0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "A": 10, "B": 11, "C": 12,
+              "D": 13, "E": 14, "F": 15}
+        l1 = [212, 45, 80, 68, 195, 163, 163, 203, 157, 220, 254, 91, 204, 79, 104, 6]
+        t = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
+        text = json.dumps(param, separators=(',', ':'))
+        md5 = hashlib.md5(text.encode()).hexdigest().upper()
+        t1 = ''.join([md5[i] for i in [21, 4, 9, 26, 16, 20, 27, 30]])
+        t3 = ''.join([md5[i] for i in [18, 11, 3, 2, 1, 7, 6, 25]])
+        ls2 = []
+        for i in range(16):
+            x1 = k1[md5[i * 2]]
+            x2 = k1[md5[i * 2 + 1]]
+            x3 = ((x1 * 16) ^ x2) ^ l1[i]
+            ls2.append(x3)
+
+        ls3 = []
+        for i in range(6):
+            if i == 5:
+                ls3.append(t[ls2[-1] >> 2])
+                ls3.append(t[(ls2[-1] & 3) << 4])
+            else:
+                x4 = ls2[i * 3] >> 2
+                x5 = (ls2[i * 3 + 1] >> 4) ^ ((ls2[i * 3] & 3) << 4)
+                x6 = (ls2[i * 3 + 2] >> 6) ^ ((ls2[i * 3 + 1] & 15) << 2)
+                x7 = 63 & ls2[i * 3 + 2]
+                ls3.extend(t[x4] + t[x5] + t[x6] + t[x7])
+
+        t2 = ''.join(ls3).replace('[\\/+]', '')
+        sign = 'zzb' + (t1 + t2 + t3).lower()
+        return sign
+
+    def get_lyric(self, mid):
+        """
+        QQ音乐歌词接口
+        :param mid: 歌曲id
+        """
+        url = "https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg"
+        params = dict(format="json", songmid=f"{mid}")
+        res = requests.get(url, params=params, headers=self.header).json()
+        data = base64.b64decode(res["lyric"]).decode("utf-8")
+        # print(data)
+        return data
+
+    def get_music_list(self, tid):
+        """
+        获取歌单列表
+        :param tid: 歌单id
+        :return:
+        """
+        url = 'https://c.y.qq.com/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg?type=1&json=1&utf8=1&onlysong=0' \
+              '&disstid=%s&format=jsonp&g_tk=5381&jsonpCallback=playlistinfoCallback&loginUin=0&hostUin=0&inCharset' \
+              '=utf8&outCharset=utf-8?ice=0&platform=yqq&needNewCode=0' % tid
+        ret = requests.get(url=url, headers=self.header).text
+        res = json.loads(ret[21:-1])
+        data_list = []
+        for i in res['cdlist'][0]['songlist']:
+            author = ''
+            song_id = i['songmid']
+            pic = 'https://y.qq.com/music/photo_new/T002R300x300M000%s.jpg' % i['albummid']
+            for x in i['singer']:
+                author += x['name'] + '/'
+            data_list.append({'title': i['songname'], 'author': author[:-1],
+                                   'url': 'https://api2.52jan.com/qqmusic/%s' % song_id,
+                                   'pic': ''.join(pic),
+                                   'lrc': 'https://api2.52jan.com/qqmusic/lrc/%s.lrc' % song_id})
+        # print(json.dumps(self.data_list))
+        return data_list
+
+    def get_music_vkey(self, mid):
+        """
+        获取歌曲播放地址
+        :param mid: 001GLG5B45uLhI
+        :return:
+        """
+        param = {"comm":{"cv":4747474,"ct":24,"format":"json","inCharset":"utf-8","outCharset":"utf-8","notice":0,"platform":"yqq.json","needNewCode":1,"uin":838210720,"g_tk_new_20200303":744448821,"g_tk":744448821},"req_1":{"module":"vkey.GetVkeyServer","method":"CgiGetVkey","param":{"guid":"3916428996","songmid":[mid],"songtype":[0],"uin":"838210720","loginflag":1,"platform":"20"}}}
+        url = f'https://u.y.qq.com/cgi-bin/musics.fcg?_={round(time.time() * 1000)}&sign={self.encrypt(param)}'
+        ret = requests.post(url=url, data=json.dumps(param, separators=(',', ':')), headers=self.header).json()
+        uri = random.choice(ret['req_1']['data']['sip']) + ret['req_1']['data']['midurlinfo'][0]['purl'] if ret['code'] == 0 else 'null'
+        # print(uri)
+        return uri
+    
 
 if __name__ == '__main__':
-    wyy = WangYiYun()
+    # wyy = WangYiYun()
     # print(wyy.get_lrc('1413464902'))
     # wyy.get_wyy_discover('7480897649')
     # wyy.get_wyy_playurl('1413464902')
     # wyy.get_wyy_playurl2('1413464902')
     # kugou_lrc('90517066E6D63B05F96F2B7261A3CB13')
     # kugou_url('F49DE363462721C3F4B1AB3575D6153E')
+    # qq = qqmusic()
+    # music_list = qq.get_music_list('8672698451')
+    # print(json.dumps(music_list))
+    # qq.get_music_vkey('003XT6Ef4H6X66')
