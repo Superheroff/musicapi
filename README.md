@@ -4,8 +4,20 @@
 - 目前已支持`酷狗、网易、QQ`音乐
 - 浏览[我的歌单](http://www.app966.cn/music/)查看效果
 
+# 假如你有vip会员
+- 酷狗
+1. 需要拿到的参数`token、userid`，获取途径：APP
+2. 在`kugou_url`方法中把url中的token和userid补全，计算哈希值把尾部的0替换成userid
+- 网易云
+1. 需要拿到的参数`cookie`，cookie中包含了`csrf_token、music_u`，获取途径：WEB网页
+2. 拿到之后在`WangYiYun()类初始化时补全即可
+- QQ音乐
+1. 需要拿到的参数`cookie`，获取途径：WEB网页
+2. 在`qqmusic()`类里面的`get_music_vkey`方法中把`self.header['cookie']`补全即可
+
 # 接口说明
 - **获取歌单列表信息**
+
 - 请求地址：`https://api2.52jan.com`
 - 路径：`/music/songlist`
 - 请求方式：`POST`
