@@ -292,21 +292,27 @@ class WangYiYun():
                                    'lrc': 'https://api2.52jan.com/qqmusic/lrc/%s.lrc' % song_id})
         # print(json.dumps(self.data_list))
         return data_list
-
+    
+    
+    def get_random(self, len):
+        return ''.join(str(random.choice(range(10))) for _ in range(len))
+    
+    
     def get_music_vkey(self, mid):
         """
         获取歌曲播放地址
         :param mid: 001GLG5B45uLhI
         :return:
         """
-        i = 3
+        i = 1
         req = 'req_' + str(i)
+        # guid会影响成功率，所以要随机
         while True:
             param = {"comm": {"cv": 4747474, "ct": 24, "format": "json", "inCharset": "utf-8", "outCharset": "utf-8",
                               "notice": 0, "platform": "yqq.json", "needNewCode": 1, "uin": 838210720,
                               "g_tk_new_20200303": 744448821, "g_tk": 744448821},
                      req: {"module": "vkey.GetVkeyServer", "method": "CgiGetVkey",
-                           "param": {"guid": "2157947828", "songmid": [mid], "songtype": [0], "uin": "838210720",
+                           "param": {"guid": "794" + self.get_random(7), "songmid": [mid], "songtype": [0], "uin": "838210720",
                                      "loginflag": 1, "platform": "20"}}}
             url = f'https://u.y.qq.com/cgi-bin/musics.fcg?_={round(time.time() * 1000)}&sign={self.encrypt(param)}'
             self.header['cookie'] = ''
