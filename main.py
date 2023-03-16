@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, redirect
 from flask_cors import CORS
-import xhsapi
-# red_updata_music()这个方法我用来记录接口访问次数的，你们删除即可
+import musicapi
+
 application = Flask(__name__, static_folder='templates/static')
 bootstrap = Bootstrap(application)
 application.config['JSON_AS_ASCII'] = False
@@ -9,42 +9,36 @@ CORS(application, resources=r'/*')
 
 @application.route(rule="/kugou/<song_id>")
 def kugou_url(song_id):
-    xhsapi.red_updata_music()
-    ret = xhsapi.kugou_url(song_id)
+    ret = musicapi.kugou_url(song_id)
     return redirect(ret, code=301)
 
 @application.route(rule="/kugou/lrc/<song_id>.lrc")
 def kugou_lrc(song_id):
-    xhsapi.red_updata_music()
-    ret = xhsapi.kugou_lrc(song_id)
+    ret = musicapi.kugou_lrc(song_id)
     return ret
 
 
 @application.route(rule="/wyy/<song_id>")
 def wyy_url(song_id):
-    xhsapi.red_updata_music()
-    wyy = xhsapi.WangYiYun()
+    wyy = musicapi.WangYiYun()
     ret = wyy.get_wyy_playurl(song_id)
     return redirect(ret, code=301)
 
 @application.route(rule="/wyy/lrc/<song_id>.lrc")
 def wyy_lrc(song_id):
-    xhsapi.red_updata_music()
-    wyy = xhsapi.WangYiYun()
+    wyy = musicapi.WangYiYun()
     ret = wyy.get_lrc(song_id)
     return ret
 
 @application.route(rule="/qqmusic/<song_id>")
 def qqmusic_url(song_id):
-    xhsapi.red_updata_music()
-    qqmusic = xhsapi.qqmusic()
+    qqmusic = musicapi.qqmusic()
     ret = qqmusic.get_music_vkey(song_id)
     return redirect(ret, code=301)
 
 @application.route(rule="/qqmusic/lrc/<song_id>.lrc")
 def qqmusic_lrc(song_id):
-    xhsapi.red_updata_music()
-    qqmusic = xhsapi.qqmusic()
+    qqmusic = musicapi.qqmusic()
     ret = qqmusic.get_lyric(song_id)
     return ret
 
@@ -54,15 +48,12 @@ def music_songlist():
     songs_id = request.values.get('id', '')
     if server and songs_id:
         if server == 'kugou':
-            xhsapi.red_updata_music()
-            resp = xhsapi.kugou(songs_id)
+            resp = musicapi.kugou(songs_id)
         elif server == 'wyy':
-            xhsapi.red_updata_music()
-            wyy = xhsapi.WangYiYun()
+            wyy = musicapi.WangYiYun()
             resp = wyy.get_wyy_discover(songs_id)
         elif server == 'qqmusic':
-            xhsapi.red_updata_music()
-            qqmusic = xhsapi.qqmusic()
+            qqmusic = musicapi.qqmusic()
             resp = qqmusic.get_music_list(songs_id)
         else:
             resp = {'msg': '暂不支持此平台'}
