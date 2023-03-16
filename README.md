@@ -10,7 +10,7 @@
 2. 在`kugou_url`方法中把url中的token和userid补全，计算哈希值把尾部的0替换成userid
 - 网易云
 1. 需要拿到的参数`cookie`，cookie中包含了`csrf_token、music_u`，获取途径：WEB网页
-2. 拿到之后在`WangYiYun()类初始化时补全即可
+2. 拿到之后在`WangYiYun()`类初始化时补全即可
 - QQ音乐
 1. 需要拿到的参数`cookie`，获取途径：WEB网页
 2. 在`qqmusic()`类里面的`get_music_vkey`方法中把`self.header['cookie']`补全即可
