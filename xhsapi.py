@@ -297,11 +297,14 @@ class WangYiYun():
         :param mid: 001GLG5B45uLhI
         :return:
         """
-        param = {"comm":{"cv":4747474,"ct":24,"format":"json","inCharset":"utf-8","outCharset":"utf-8","notice":0,"platform":"yqq.json","needNewCode":1,"uin":838210720,"g_tk_new_20200303":744448821,"g_tk":744448821},"req_1":{"module":"vkey.GetVkeyServer","method":"CgiGetVkey","param":{"guid":"3916428996","songmid":[mid],"songtype":[0],"uin":"838210720","loginflag":1,"platform":"20"}}}
+        param = {"comm":{"cv":4747474,"ct":24,"format":"json","inCharset":"utf-8","outCharset":"utf-8","notice":0,"platform":"yqq.json","needNewCode":1,"uin":838210720,"g_tk_new_20200303":744448821,"g_tk":744448821},"req_3":{"module":"vkey.GetVkeyServer","method":"CgiGetVkey","param":{"guid":"2157947828","songmid":[mid],"songtype":[0],"uin":"838210720","loginflag":1,"platform":"20"}}}
         url = f'https://u.y.qq.com/cgi-bin/musics.fcg?_={round(time.time() * 1000)}&sign={self.encrypt(param)}'
+        self.header['cookie'] = ''
         ret = requests.post(url=url, data=json.dumps(param, separators=(',', ':')), headers=self.header).json()
-        uri = random.choice(ret['req_1']['data']['sip']) + ret['req_1']['data']['midurlinfo'][0]['purl'] if ret['code'] == 0 else 'null'
-        # print(uri)
+        print(json.dumps(ret))
+        purl = ret['req_3']['data']['midurlinfo'][0]['purl']
+        uri = random.choice(ret['req_3']['data']['sip']) + purl if ret['code'] == 0 and purl != '' else 'vip歌曲'
+        print(uri)
         return uri
     
 
