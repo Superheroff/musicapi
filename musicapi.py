@@ -299,9 +299,6 @@ class WangYiYun():
         :param mid: 001GLG5B45uLhI
         :return:
         """
-        cookie = requests.get('https://qcloud.app966.cn/music_json/qqmusic_cookie.txt',
-                              headers={'referer': 'https://www.app966.cn/'}).text
-
         i = 3
         req = 'req_' + str(i)
         while True:
@@ -312,7 +309,7 @@ class WangYiYun():
                            "param": {"guid": "2157947828", "songmid": [mid], "songtype": [0], "uin": "838210720",
                                      "loginflag": 1, "platform": "20"}}}
             url = f'https://u.y.qq.com/cgi-bin/musics.fcg?_={round(time.time() * 1000)}&sign={self.encrypt(param)}'
-            self.header['cookie'] = cookie
+            self.header['cookie'] = ''
             ret = requests.post(url=url, data=json.dumps(param, separators=(',', ':')), headers=self.header).json()
             # print(json.dumps(ret))
             code = ret['code']
