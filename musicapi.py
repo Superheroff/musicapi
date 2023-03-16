@@ -299,14 +299,34 @@ class WangYiYun():
         :param mid: 001GLG5B45uLhI
         :return:
         """
-        param = {"comm":{"cv":4747474,"ct":24,"format":"json","inCharset":"utf-8","outCharset":"utf-8","notice":0,"platform":"yqq.json","needNewCode":1,"uin":838210720,"g_tk_new_20200303":744448821,"g_tk":744448821},"req_3":{"module":"vkey.GetVkeyServer","method":"CgiGetVkey","param":{"guid":"2157947828","songmid":[mid],"songtype":[0],"uin":"838210720","loginflag":1,"platform":"20"}}}
-        url = f'https://u.y.qq.com/cgi-bin/musics.fcg?_={round(time.time() * 1000)}&sign={self.encrypt(param)}'
-        self.header['cookie'] = ''
-        ret = requests.post(url=url, data=json.dumps(param, separators=(',', ':')), headers=self.header).json()
-        print(json.dumps(ret))
-        purl = ret['req_3']['data']['midurlinfo'][0]['purl']
-        uri = random.choice(ret['req_3']['data']['sip']) + purl if ret['code'] == 0 and purl != '' else 'vip歌曲'
-        print(uri)
+        cookie = requests.get('https://qcloud.app966.cn/music_json/qqmusic_cookie.txt',
+                              headers={'referer': 'https://www.app966.cn/'}).text
+
+        i = 3
+        req = 'req_' + str(i)
+        while True:
+            param = {"comm": {"cv": 4747474, "ct": 24, "format": "json", "inCharset": "utf-8", "outCharset": "utf-8",
+                              "notice": 0, "platform": "yqq.json", "needNewCode": 1, "uin": 838210720,
+                              "g_tk_new_20200303": 744448821, "g_tk": 744448821},
+                     req: {"module": "vkey.GetVkeyServer", "method": "CgiGetVkey",
+                           "param": {"guid": "2157947828", "songmid": [mid], "songtype": [0], "uin": "838210720",
+                                     "loginflag": 1, "platform": "20"}}}
+            url = f'https://u.y.qq.com/cgi-bin/musics.fcg?_={round(time.time() * 1000)}&sign={self.encrypt(param)}'
+            self.header['cookie'] = cookie
+            ret = requests.post(url=url, data=json.dumps(param, separators=(',', ':')), headers=self.header).json()
+            # print(json.dumps(ret))
+            code = ret['code']
+            if code == 2000:
+                i += 1
+                req = 'req_' + str(i)
+                if i > 7:
+                    break
+            else:
+                break
+
+        purl = ret[req]['data']['midurlinfo'][0]['purl']
+        uri = random.choice(ret[req]['data']['sip']) + purl if code == 0 and purl != '' else 'vip歌曲'
+        # print(uri)
         return uri
     
 
@@ -318,7 +338,7 @@ if __name__ == '__main__':
     # wyy.get_wyy_playurl2('1413464902')
     # kugou_lrc('90517066E6D63B05F96F2B7261A3CB13')
     # kugou_url('F49DE363462721C3F4B1AB3575D6153E')
-    # qq = qqmusic()
+    qq = qqmusic()
     # music_list = qq.get_music_list('8672698451')
     # print(json.dumps(music_list))
-    # qq.get_music_vkey('003XT6Ef4H6X66')
+    qq.get_music_vkey('003XT6Ef4H6X66')
