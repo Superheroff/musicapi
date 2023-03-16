@@ -4,6 +4,11 @@
 - 目前已支持`酷狗、网易、QQ`音乐
 - 浏览[我的歌单](http://www.app966.cn/music/)查看效果
 
+# 此接口的升级版
+```
+https://api.i-meto.com/meting/api?server=tencent&type=playlist&id=8672698451
+```
+
 # 假如你有vip会员
 - 酷狗
 1. 需要拿到的参数`token、userid`，获取途径：APP
