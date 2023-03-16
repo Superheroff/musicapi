@@ -47,11 +47,17 @@ id|string|歌单ID|6222311、7480897649、8672698451
 	"title": "春风十里报新年",
 	"url": "https://api2.52jan.com/wyy/1413464902"
 }, {
-	"author": "刘至佳",
-	"lrc": "https://api2.52jan.com/qqmusic/lrc/0022fsjW39a0zG.lrc",
-	"pic": "https://y.qq.com/music/photo_new/T002R300x300M0000016lk1t0LgKw6.jpg",
-	"title": "说爱你",
-	"url": "https://api2.52jan.com/qqmusic/0022fsjW39a0zG"
+	"author": "周杰伦",
+	"lrc": "https://api2.52jan.com/qqmusic/lrc/00265Jxe3JzXOJ.lrc",
+	"pic": "https://y.qq.com/music/photo_new/T002R300x300M000000bviBl4FjTpO.jpg",
+	"title": "说了再见",
+	"url": "https://api2.52jan.com/qqmusic/00265Jxe3JzXOJ"
+}, {
+	"author": "李荣浩",
+	"lrc": "https://api2.52jan.com/qqmusic/lrc/001GLG5B45uLhI.lrc",
+	"pic": "https://y.qq.com/music/photo_new/T002R300x300M000002PwL9x3TiVdh.jpg",
+	"title": "乌梅子酱",
+	"url": "https://api2.52jan.com/qqmusic/001GLG5B45uLhI"
 }]
 ```
 
