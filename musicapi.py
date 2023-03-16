@@ -264,6 +264,8 @@ class WangYiYun():
         res = requests.get(url, params=params, headers=self.header).json()
         data = base64.b64decode(res["lyric"]).decode("utf-8")
         # print(data)
+        if data == '':
+            data = '纯音乐，请欣赏'
         return data
 
     def get_music_list(self, tid):
