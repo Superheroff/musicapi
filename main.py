@@ -3,7 +3,7 @@
 @Time    : 2023/3/25 19:47
 @Author  : superhero
 @Email   : 838210720@qq.com
-@File    : run.py
+@File    : main.py
 @IDE: PyCharm
 """
 from flask import Flask, jsonify, request, redirect
