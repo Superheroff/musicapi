@@ -1,10 +1,10 @@
 # 前言
-- 做这个的初衷就是`hexo-tag-aplayer`不稳定，也不能满足自己的需求
-- 我的主要是在博客使用的，所以只是按我博客的想法做的接口
+- 做这个的初衷就是`hexo-tag-aplayer`不稳定且不能满足自己的需求所以才有的这个项目
+- 我的主要用途是构建博客的歌单列表，所以此项目只是以我博客的需求做的接口
 - 目前已支持`酷狗、网易、QQ`音乐
-- 浏览[我的歌单](http://www.app966.cn/music/)查看效果
+- 浏览[我的歌单](https://www.app966.cn/music/)查看效果
 
-# 此接口的升级版
+# 为此接口的升级版
 ```
 https://api.i-meto.com/meting/api?server=tencent&type=playlist&id=8672698451
 ```
@@ -12,10 +12,10 @@ https://api.i-meto.com/meting/api?server=tencent&type=playlist&id=8672698451
 # 假如你有vip会员
 - 酷狗
 1. 需要拿到的参数`token、userid`，获取途径：APP
-2. 在`kugou_url`方法中把url中的token和userid补全，计算哈希值把尾部的0替换成userid
+2. 在`kugou()`类初始化时把`self.token`和`self.userid`补全即可
 - 网易云
 1. 需要拿到的参数`cookie`，cookie中包含了`csrf_token、music_u`，获取途径：WEB网页
-2. 在`WangYiYun()`类初始化时补全即可
+2. 在`wyymusic()`类初始化时把`self.MUSIC_U`、`self.csrf_token`和`self.cookie`补全即可
 - QQ音乐
 1. 需要拿到的参数`cookie`，获取途径：WEB网页
 2. 在`qqmusic()`类里面的`get_music_vkey`方法中把`self.header['cookie']`补全即可
