@@ -166,23 +166,31 @@ class wyymusic(kugou):
 
     def wyy_discover(self):
         """
-        获取歌单所有歌曲id
+        获取歌单详情
+        :param list_id: 列表id
         :return:
         """
-        # 这里要添加自己的cookie，否则只能10个
-        ret = requests.get("https://music.163.com/playlist?id=" + self.tid, headers={"User-Agent": self.ua},
-                           cookies=self.cookie).text
-        soup = etree.HTML(ret)
-        m_id = soup.xpath('//ul[@class="f-hide"]/li/a/@href')
+        # 这里要添加自己的cookie
+        url = "http://music.163.com/api/v6/playlist/detail"
+        ret = requests.post(url, data={"s": "0", "id": list_id, "n": "1000", "t": "0"},
+                            headers={"User-Agent": self.ua, "Cookie": self.cookie}).json()
         ids = ''
-        for i in m_id:
-            ids += i.replace('/song?id=', '') + ','
-        data = self.wyy_music_list(ids[:-1])
-        return data
+        for i in ret['playlist']['trackIds']:
+            ids += str(i['id']) + ','
+
+        # ret = requests.get("https://music.163.com/playlist?id=" + list_id,
+        #                    headers={"User-Agent": self.ua, "Cookie": self.cookie}).text
+        # soup = etree.HTML(ret)
+        # m_id = soup.xpath('//ul[@class="f-hide"]/li/a/@href')
+        # ids = ''
+        # for i in m_id:
+        #     ids += i.replace('/song?id=', '') + ','
+        self.get_music_info(ids[:-1])
+        return self.data_list
 
     def wyy_music_list(self, t_ids):
         """
-        获取歌单所有歌曲信息
+        根据歌曲id拼接成想要的歌曲列表
         :param t_ids: 歌单列表id数组
         :return:
         """
@@ -198,7 +206,6 @@ class wyymusic(kugou):
                                    'url': 'http://api2.52jan.com/wyy/%s' % song_id,
                                    'pic': i['album']['picUrl'],
                                    'lrc': 'http://api2.52jan.com/wyy/lrc/%s.lrc' % song_id})
-        return self.data_list
 
     def wyy_url(self, m_id: str):
         """
