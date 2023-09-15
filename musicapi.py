@@ -213,10 +213,10 @@ class wyymusic(kugou):
         :param m_id: 音乐id
         :return:
         """
-        url = 'https://music.163.com/weapi/song/enhance/player/url?csrf_token=' + self.csrf_token
-        encText = str({'ids': "[" + m_id + "]", 'br': 128000, 'csrf_token': self.csrf_token,
-                       'MUSIC_U': self.MUSIC_U})
-        params = self.AES_encrypt(self.AES_encrypt(encText, self.g, self.iv), self.i, self.iv)
+        url = 'https://music.163.com/weapi/song/enhance/player/url/v1?csrf_token=' + self.csrf_token
+        encText = str(
+            {'ids': "[" + str(music_id) + "]", 'encodeType': 'aac', 'csrf_token': self.csrf_token, 'level': 'standard'})
+        params = AES_encrypt(AES_encrypt(encText, self.g, self.iv), self.i, self.iv)
         data = {
             'params': params,
             'encSecKey': self.get_encSecKey()
@@ -224,18 +224,14 @@ class wyymusic(kugou):
         headeer = {
             'User-Agent': self.ua,
             'Referer': 'https://music.163.com/',
-            'Content-Type': 'application/x-www-form-urlencoded'
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Cookie': self.cookie
         }
         ret = requests.post(url, headers=headeer, data=data).json()
-        try:
-            download_url = ret['data'][0]['url']
-        except:
-            download_url = self.wyy_url2(m_id)
-        if len(download_url) > 20:
-            msg = download_url
-        else:
-            msg = {'msg': '出现了错误，错误位置：获取音乐源'}
-        return msg
+        download_url = ret['data'][0]['url']
+        if download_url is None:
+            download_url = self.get_wyy_playurl2(music_id)
+        return download_url
 
     def wyy_url2(self, m_id: str):
         """
@@ -243,16 +239,13 @@ class wyymusic(kugou):
         :param m_id: 音乐id
         :return:
         """
-        url = f'https://music.163.com/api/song/enhance/player/url?id={m_id}&ids=%5B{m_id}%5D&br=3200000'
-        ret = requests.get(url).json()
-        try:
-            download_url = ret['data'][0]['url']
-        except:
-            download_url = ''
-        if len(download_url) > 20:
+        url = f'https://music.163.com/api/song/enhance/player/url?id={music_id}&ids=%5B{music_id}%5D&br=3200000'
+        ret = requests.get(url, headers={'cookie': self.cookie}).json()
+        download_url = ret['data'][0]['url']
+        if download_url:
             msg = download_url
         else:
-            msg = {'msg': '出现了错误，错误位置：获取音乐源2'}
+            msg = {'msg': '出现了错误，错误位置：获取音乐源'}
         return msg
 
     def wyy_lrc(self, m_id: str):
