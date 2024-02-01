@@ -66,7 +66,7 @@ def music_songlist():
         if server == 'kugou':
             resp = music_info.kugou_list()
         elif server == 'wyy':
-            resp = music_info.wyy_discover()
+            resp = music_info.wyy_discover(t_id)
         elif server == 'qqmusic':
             resp = music_info.get_music_list()
         else:
