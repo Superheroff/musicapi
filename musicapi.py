@@ -164,7 +164,7 @@ class wyymusic(kugou):
     def get_encSecKey(self):
         return self.RSA_encrypt(self.i, self.b, self.c)
 
-    def wyy_discover(self):
+    def wyy_discover(self,list_id):
         """
         获取歌单详情
         :param list_id: 列表id
@@ -185,7 +185,7 @@ class wyymusic(kugou):
         # ids = ''
         # for i in m_id:
         #     ids += i.replace('/song?id=', '') + ','
-        self.get_music_info(ids[:-1])
+        self.wyy_music_list(ids[:-1])
         return self.data_list
 
     def wyy_music_list(self, t_ids):
