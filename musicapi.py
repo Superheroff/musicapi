@@ -7,52 +7,51 @@
 @IDE: PyCharm
 """
 import base64
-import codecs
 import hashlib
 import json
 import random
 import time
-
-import execjs
 import requests
-from Crypto.Cipher import AES
-from Crypto.Util.Padding import pad
-from lxml import etree
+import http.cookies
+from app import kugou_music_sign, MusicApi_wyy_sign, qq_music_sign, MusicApi_kuwo_sign
 
 
-class kugou(object):
-    def __init__(self, tid: str):
+class MusicApi_kugou:
+    def __init__(self, song_ids):
         """
         初始化
-        :param tid: 歌单id
         """
+        self.cookie = None
         self.mid = '239526275778893399526700786998289824956'
         self.userid = '0'
-        self.tid = tid
-        self.data_list = []  # 组装歌单列表
-        self.ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'
+        self.song_ids = song_ids
+        self.headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+        }
 
-    def kugou_signature(self, url):
-        """
-        计算酷狗sign
-        :param url:
-        :return:
-        """
-        uri = url.split('?')[1]
-        uri_list = uri.split('&')
-        ordered_list = sorted(uri_list)
-        uri = 'OIlwieks28dk2k092lksi2UIkp' + "".join(ordered_list) + 'OIlwieks28dk2k092lksi2UIkp'
-        return hashlib.md5(uri.encode(encoding='utf-8')).hexdigest()
+    def MusicApi_set_cookie(self, cookie):
+        self.cookie = cookie
+        self.headers["Cookie"] = self.cookie
 
-    def kugou_url(self, hash):
+    @property
+    def cookie_to_dict(self):
+        cookie_dict = {}
+        if self.cookie:
+            cookies = http.cookies.SimpleCookie()
+            cookies.load(self.cookie)
+            for key, morsel in cookies.items():
+                cookie_dict[key] = morsel.value
+        return cookie_dict
+
+    def get_kugou_url(self, music_id):
         """
         获取酷狗音乐源地址
-        :param hash:
+        :param music_id:
         :return:
         """
-        hax = hash + '57ae12eb6890223e355ccfcb74edf70d1005' + self.mid + self.userid
+        hax = music_id + '57ae12eb6890223e355ccfcb74edf70d1005' + self.mid + self.userid
         str_md5 = hashlib.md5(hax.encode(encoding='utf-8')).hexdigest()
-        url = f'https://gateway.kugou.com/i/v2/?dfid=&pid=2&mid={self.mid}&cmd=26&token=&hash={hash}&area_code=1&behavior=play&appid=1005&module=&vipType=6&ptype=1&userid=0&mtype=1&album_id=&pidversion=3001&key={str_md5}&version=10209&album_audio_id=&with_res_tag=1'
+        url = f'https://gateway.kugou.com/i/v2/?dfid=&pid=2&mid={self.mid}&cmd=26&token=&hash={music_id}&area_code=1&behavior=play&appid=1005&module=&vipType=6&ptype=1&userid=0&mtype=1&album_id=&pidversion=3001&key={str_md5}&version=10209&album_audio_id=&with_res_tag=1'
         header = {
             'Host': 'gateway.kugou.com',
             'x-router': 'tracker.kugou.com',
@@ -65,196 +64,147 @@ class kugou(object):
         json_data = json.loads(ret)
         return json_data['url'][0]
 
-    def kugou_lrc(self, hash):
+    def get_kugou_lrc(self, music_id):
         """
         获取酷狗歌词
-        :param hash:
+        :param music_id:
         :return:
         """
-        url = f'http://krcs.kugou.com/search?ver=1&man=yes&client=mobi&keyword=&duration=&hash={hash}&album_audio_id='
+        url = f'http://krcs.kugou.com/search?ver=1&man=yes&client=mobi&keyword=&duration=&hash={music_id}&album_audio_id='
         res = requests.get(url)
-        ret = 'null'
         if res.status_code == 200:
             json_data = res.json()
             url = f'https://lyrics.kugou.com/download?ver=1&client=pc&id={json_data["candidates"][0]["id"]}&accesskey={json_data["candidates"][0]["accesskey"]}&fmt=lrc&charset=utf8'
             res = requests.get(url).json()
-            ret = base64.b64decode(res['content']).decode("utf-8")
-        return ret
+            res = base64.b64decode(res['content']).decode("utf-8")
+        else:
+            res = "error:get_kugou_lrc"
+        return res
 
-    def kugou_list(self):
+    @property
+    def get_kugou_list(self) -> list:
         """
         获取酷狗歌单列表
         :return:
         """
-        url = f'http://gatewayretry.kugou.com/v2/get_other_list_file?specialid={self.tid}&need_sort=1&module=CloudMusic' \
+        url = f'http://gatewayretry.kugou.com/v2/get_other_list_file?specialid={self.song_ids}&need_sort=1&module=CloudMusic' \
               '&clientver=11239&pagesize=300&specalidpgc' \
-              f'={self.tid}&userid=0&page=1&type=0&area_code=1&appid=1005'
+              f'={self.song_ids}&userid=0&page=1&type=0&area_code=1&appid=1005'
 
         header = {
             'User-Agent': 'Android9-AndroidPhone-11239-18-0-playlist-wifi',
             'Host': 'gatewayretry.kugou.com',
             'x-router': 'pubsongscdn.kugou.com',
-            'mid': '239526275778893399526700786998289824956',  # 设备id
+            'mid': self.mid,  # 设备id
             'dfid': '-',
             'clienttime': str(time.time()).split('.')[0]
         }
-        signature = self.kugou_signature(url)
+        signature = kugou_music_sign(url)
         url = url + '&signature=' + signature
         ret = requests.get(url, headers=header)
+        kugou_music_list = []
         if ret.status_code == 200:
             json_data = ret.json()
-            self.data_list.clear()
             for i in json_data['data']['info']:
                 name = i['name'].split(' - ')
                 song_id = i['hash']
-                self.data_list.append(
+                kugou_music_list.append(
                     {'title': name[1], 'author': name[0], 'url': 'http://api2.52jan.com/kugou/%s' % song_id,
                      'pic': i['cover'].replace('/{size}', ''),
-                     'lrc': 'http://api2.52jan.com/kugou/lrc/%s.lrc' % song_id})
-        else:
-            pass
-        # print(self.data_list)
-        return self.data_list
+                     'lrc': 'http://api2.52jan.com/kugou/lrc/%s.lrc' % song_id,
+                     'music_id': song_id})
 
-    def to_16(self, key):
-        while len(key) % 16 != 0:
-            key += '\0'
-        return str.encode(key)
-
-    def AES_encrypt(self, text, key, iv):
-        bs = AES.block_size
-        pad2 = lambda s: s + (bs - len(s) % bs) * chr(bs - len(s) % bs)
-        encryptor = AES.new(self.to_16(key), AES.MODE_CBC, self.to_16(iv))
-
-        pd2 = pad(str.encode(pad2(text)), 16)
-
-        encrypt_aes = encryptor.encrypt(pd2)
-        encrypt_text = str(base64.encodebytes(encrypt_aes), encoding='utf-8')
-        return encrypt_text
-
-    def RSA_encrypt(self, text, pubKey, modulus):
-        text = text[::-1]
-        rs = int(codecs.encode(text.encode('utf-8'), 'hex_codec'), 16) ** int(pubKey, 16) % int(modulus, 16)
-        return format(rs, 'x').zfill(256)
+        # print(kugou_music_list)
+        return kugou_music_list
 
 
-class wyymusic(kugou):
-    def __init__(self, tid: str):
-        super(wyymusic, self).__init__(tid)
-        get_i = execjs.compile(r"""
-            function a(a) {
-                var d, e, b = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", c = "";
-                for (d = 0; a > d; d += 1)
-                    e = Math.random() * b.length,
-                    e = Math.floor(e),
-                    c += b.charAt(e);
-                return c
-            }
-        """)
+class MusicApi_wyy(MusicApi_kugou):
+    def __init__(self, song_ids):
+        super(MusicApi_wyy, self).__init__(song_ids)
         # csrf_token、cookie和MUSIC_U需要抓包获取，如果你的账号开通了会员将支持会员歌曲
-        self.csrf_token = ''
-        self.cookie = {}
-        self.MUSIC_U = ''
-        self.g = '0CoJUm6Qyw8W8jud'
-        self.b = "010001"
-        self.c = '00e0b509f6259df8642dbc35662901477df22677ec152b5ff68ace615bb7b725152b3ab17a876aea8a5aa76d2e417629ec4ee341f56135fccf695280104e0312ecbda92557c93870114af6c9d05c4f7f0c3685b7a46bee255932575cce10b424d813cfe4875d3e82047b97ddef52741d546b8e289dc6935b3ece0462db0a22b8e7'
-        self.i = get_i.call('a', 16)
-        self.iv = "0102030405060708"
+        self.csrf_token = self.cookie_to_dict.get('csrf_token', '')
 
-    def get_encSecKey(self):
-        return self.RSA_encrypt(self.i, self.b, self.c)
-
-    def wyy_discover(self):
+    @property
+    def get_wyy_list(self) -> list:
         """
-        获取歌单详情
-        :param list_id: 列表id
+        获取网易云歌单列表
         :return:
         """
         # 这里要添加自己的cookie
         url = "http://music.163.com/api/v6/playlist/detail"
-        ret = requests.post(url, data={"s": "0", "id": list_id, "n": "1000", "t": "0"},
-                            headers={"User-Agent": self.ua, "Cookie": self.cookie}).json()
+        self.headers["Cookie"] = self.cookie
+        ret = requests.post(url, data={"s": "0", "id": self.song_ids, "n": "1000", "t": "0"},
+                            headers=self.headers).json()
         ids = ''
         for i in ret['playlist']['trackIds']:
             ids += str(i['id']) + ','
 
-        # ret = requests.get("https://music.163.com/playlist?id=" + list_id,
-        #                    headers={"User-Agent": self.ua, "Cookie": self.cookie}).text
-        # soup = etree.HTML(ret)
-        # m_id = soup.xpath('//ul[@class="f-hide"]/li/a/@href')
-        # ids = ''
-        # for i in m_id:
-        #     ids += i.replace('/song?id=', '') + ','
-        self.get_music_info(ids[:-1])
-        return self.data_list
-
-    def wyy_music_list(self, t_ids):
-        """
-        根据歌曲id拼接成想要的歌曲列表
-        :param t_ids: 歌单列表id数组
-        :return:
-        """
-        url = f'http://music.163.com/api/song/detail/?id={t_ids}&ids=%5B{t_ids}%5D'
-        ret = requests.get(url).json()
-        self.data_list.clear()
+        url = f'http://music.163.com/api/song/detail/?id={ids[:-1]}&ids=%5B{ids[:-1]}%5D'
+        ret = requests.get(url, headers=self.headers).json()
+        wyy_music_list = []
         for i in ret['songs']:
             song_id = i['id']
             author = ''
             for n in i['artists']:
                 author += n['name'] + '/'
-            self.data_list.append({'title': i['name'], 'author': author[:-1],
-                                   'url': 'http://api2.52jan.com/wyy/%s' % song_id,
-                                   'pic': i['album']['picUrl'],
-                                   'lrc': 'http://api2.52jan.com/wyy/lrc/%s.lrc' % song_id})
+            pic = list(i['album']['picUrl'])
+            pic.insert(4, 's')
+            wyy_music_list.append({'title': i['name'], 'author': author[:-1],
+                                   'url': 'https://api2.52jan.com/wyy/%s' % song_id,
+                                   'pic': ''.join(pic),
+                                   'lrc': 'https://api2.52jan.com/wyy/lrc/%s.lrc' % song_id,
+                                   'music_id': str(song_id)})
+        return wyy_music_list
 
-    def wyy_url(self, m_id: str):
+    def get_wyy_url(self, music_id):
         """
         获取网易音乐源地址
-        :param m_id: 音乐id
+        :param music_id: 音乐id
         :return:
         """
         url = 'https://music.163.com/weapi/song/enhance/player/url/v1?csrf_token=' + self.csrf_token
-        encText = str(
-            {'ids': "[" + str(music_id) + "]", 'encodeType': 'aac', 'csrf_token': self.csrf_token, 'level': 'standard'})
-        params = AES_encrypt(AES_encrypt(encText, self.g, self.iv), self.i, self.iv)
+        encText = json.dumps(
+            {'ids': "[" + str(music_id) + "]", 'encodeType': 'aac', 'csrf_token': self.csrf_token, 'level': 'standard'},
+            separators=(',', ':'))
+        params = MusicApi_wyy_sign(encText).AES_encrypt
+        params = MusicApi_wyy_sign(params).AES_encrypt
         data = {
             'params': params,
-            'encSecKey': self.get_encSecKey()
+            'encSecKey': MusicApi_wyy_sign(encText).RSA_encrypt
         }
-        headeer = {
-            'User-Agent': self.ua,
+        headers = {
+            'User-Agent': self.headers['User-Agent'],
             'Referer': 'https://music.163.com/',
             'Content-Type': 'application/x-www-form-urlencoded',
             'Cookie': self.cookie
         }
-        ret = requests.post(url, headers=headeer, data=data).json()
-        download_url = ret['data'][0]['url']
-        if download_url is None:
-            download_url = self.get_wyy_playurl2(music_id)
+        try:
+            ret = requests.post(url, headers=headers, data=data).json()
+            download_url = ret['data'][0]['url']
+        except Exception as e:
+            download_url = self.__get_wyy_url(music_id)
         return download_url
 
-    def wyy_url2(self, m_id: str):
+    def __get_wyy_url(self, music_id):
         """
         获取网易音乐源地址2
-        :param m_id: 音乐id
+        :param music_id: 音乐id
         :return:
         """
         url = f'https://music.163.com/api/song/enhance/player/url?id={music_id}&ids=%5B{music_id}%5D&br=3200000'
-        ret = requests.get(url, headers={'cookie': self.cookie}).json()
+        self.headers["Cookie"] = self.cookie
+        ret = requests.get(url, headers=self.headers).json()
         download_url = ret['data'][0]['url']
-        if download_url:
-            msg = download_url
-        else:
-            msg = {'msg': '出现了错误，错误位置：获取音乐源'}
+        msg = download_url if download_url else {'msg': '出现了错误，错误位置：获取音乐源'}
         return msg
 
-    def wyy_lrc(self, m_id: str):
+    def get_wyy_lrc(self, music_id):
         """
         获取歌词
-        :param m_id: 音乐id
+        :param music_id: 音乐id
         :return:
         """
-        url = f'https://music.163.com/api/song/lyric?id={m_id}&lv=1&kv=1&tv=-1'
+        url = f'https://music.163.com/api/song/lyric?id={music_id}&lv=1&kv=1&tv=-1'
         ret = requests.get(url).json()
         lrc = ret['lrc']['lyric']
         if lrc == '':
@@ -262,96 +212,59 @@ class wyymusic(kugou):
         return lrc
 
 
-class qqmusic(wyymusic):
-    def __init__(self, tid: str):
-        super(qqmusic, self).__init__(tid)
-        self.header = {
-            'User-Agent': self.ua,
-            'referer': 'https://y.qq.com/'
-        }
+class MusicApi_qq(MusicApi_wyy):
+    def __init__(self, song_ids):
+        super(MusicApi_qq, self).__init__(song_ids)
+        self.headers["Referer"] = "https://y.qq.com/"
 
-    def encrypt(self, param):
-        """
-        QQ音乐sign
-        :param param:
-        :return:
-        """
-        k1 = {"0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "A": 10, "B": 11, "C": 12,
-              "D": 13, "E": 14, "F": 15}
-        l1 = [212, 45, 80, 68, 195, 163, 163, 203, 157, 220, 254, 91, 204, 79, 104, 6]
-        t = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
-        text = json.dumps(param, separators=(',', ':'))
-        md5 = hashlib.md5(text.encode()).hexdigest().upper()
-        t1 = ''.join([md5[i] for i in [21, 4, 9, 26, 16, 20, 27, 30]])
-        t3 = ''.join([md5[i] for i in [18, 11, 3, 2, 1, 7, 6, 25]])
-        ls2 = []
-        for i in range(16):
-            x1 = k1[md5[i * 2]]
-            x2 = k1[md5[i * 2 + 1]]
-            x3 = ((x1 * 16) ^ x2) ^ l1[i]
-            ls2.append(x3)
-
-        ls3 = []
-        for i in range(6):
-            if i == 5:
-                ls3.append(t[ls2[-1] >> 2])
-                ls3.append(t[(ls2[-1] & 3) << 4])
-            else:
-                x4 = ls2[i * 3] >> 2
-                x5 = (ls2[i * 3 + 1] >> 4) ^ ((ls2[i * 3] & 3) << 4)
-                x6 = (ls2[i * 3 + 2] >> 6) ^ ((ls2[i * 3 + 1] & 15) << 2)
-                x7 = 63 & ls2[i * 3 + 2]
-                ls3.extend(t[x4] + t[x5] + t[x6] + t[x7])
-
-        t2 = ''.join(ls3).replace('[\\/+]', '')
-        sign = 'zzb' + (t1 + t2 + t3).lower()
-        return sign
-
-    def qq_lrc(self, mid):
+    def get_qq_lrc(self, mid):
         """
         QQ音乐歌词接口
         :param mid: 歌曲id
         """
         url = "https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg"
         params = dict(format="json", songmid=f"{mid}")
-        res = requests.get(url, params=params, headers=self.header).json()
+        res = requests.get(url, params=params, headers=self.headers).json()
         data = base64.b64decode(res["lyric"]).decode("utf-8")
         # print(data)
         if data == '':
             data = '纯音乐，请欣赏'
         return data
 
-    def get_music_list(self):
+    @property
+    def get_qq_list(self) -> list:
         """
         获取歌单列表
         :return:
         """
-        url = 'https://c.y.qq.com/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg?type=1&json=1&utf8=1&onlysong=0' \
-              '&disstid=%s&format=jsonp&g_tk=5381&jsonpCallback=playlistinfoCallback&loginUin=0&hostUin=0&inCharset' \
-              '=utf8&outCharset=utf-8?ice=0&platform=yqq&needNewCode=0' % self.tid
-        ret = requests.get(url=url, headers=self.header).text
+        url = f'https://c.y.qq.com/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg?type=1&json=1&utf8=1&onlysong=0' \
+              f'&disstid={self.song_ids}&format=jsonp&g_tk=5381&jsonpCallback=playlistinfoCallback&loginUin=0&hostUin=0&inCharset' \
+              f'=utf8&outCharset=utf-8?ice=0&platform=yqq&needNewCode=0'
+        ret = requests.get(url=url, headers=self.headers).text
         res = json.loads(ret[21:-1])
-        self.data_list.clear()
+        qq_music_list = []
         for i in res['cdlist'][0]['songlist']:
             author = ''
             song_id = i['songmid']
             pic = 'https://y.qq.com/music/photo_new/T002R300x300M000%s.jpg' % i['albummid']
             for x in i['singer']:
                 author += x['name'] + '/'
-            self.data_list.append({'title': i['songname'], 'author': author[:-1],
-                              'url': 'https://api2.52jan.com/qqmusic/%s' % song_id,
-                              'pic': ''.join(pic),
-                              'lrc': 'https://api2.52jan.com/qqmusic/lrc/%s.lrc' % song_id})
-        # print(json.dumps(self.data_list))
-        return self.data_list
+            qq_music_list.append({'title': i['songname'], 'author': author[:-1],
+                                  'url': 'https://api2.52jan.com/qqmusic/%s' % song_id,
+                                  'pic': ''.join(pic),
+                                  'lrc': 'https://api2.52jan.com/qqmusic/lrc/%s.lrc' % song_id,
+                                  'music_id': song_id})
+        # print(json.dumps(qq_music_list, ensure_ascii=False))
+        return qq_music_list
 
-    def get_random(self, len):
-        return ''.join(str(random.choice(range(10))) for _ in range(len))
+    @property
+    def get_random(self):
+        return ''.join(str(random.choice(range(10))) for _ in range(7))
 
-    def get_music_vkey(self, mid):
+    def get_qq_url(self, music_id):
         """
         获取歌曲播放地址
-        :param mid: 001GLG5B45uLhI
+        :param music_id: 001GLG5B45uLhI
         :return:
         """
         i = 1
@@ -359,16 +272,15 @@ class qqmusic(wyymusic):
         # guid会影响成功率，所以要随机
         while True:
             param = {"comm": {"cv": 4747474, "ct": 24, "format": "json", "inCharset": "utf-8", "outCharset": "utf-8",
-                              "notice": 0, "platform": "yqq.json", "needNewCode": 1, "uin": 838210720,
+                              "notice": 0, "platform": "yqq.json", "needNewCode": 1, "uin": 838210,
                               "g_tk_new_20200303": 744448821, "g_tk": 744448821},
                      req: {"module": "vkey.GetVkeyServer", "method": "CgiGetVkey",
-                           "param": {"guid": "794" + self.get_random(7), "songmid": [mid], "songtype": [0],
+                           "param": {"guid": "794" + self.get_random, "songmid": [music_id], "songtype": [0],
                                      "uin": "838210720",
                                      "loginflag": 1, "platform": "20"}}}
-            url = f'https://u.y.qq.com/cgi-bin/musics.fcg?_={round(time.time() * 1000)}&sign={self.encrypt(param)}'
-            self.header['cookie'] = ''
-            ret = requests.post(url=url, data=json.dumps(param, separators=(',', ':')), headers=self.header).json()
-            # print(json.dumps(ret))
+            url = f'https://u.y.qq.com/cgi-bin/musics.fcg?_={round(time.time() * 1000)}&sign={qq_music_sign(param)}'
+            self.headers['cookie'] = self.cookie
+            ret = requests.post(url=url, data=json.dumps(param, separators=(',', ':')), headers=self.headers).json()
             code = ret['code']
             if code == 2000:
                 i += 1
@@ -380,27 +292,96 @@ class qqmusic(wyymusic):
 
         purl = ret[req]['data']['midurlinfo'][0]['purl']
         uri = random.choice(ret[req]['data']['sip']) + purl if code == 0 and purl != '' else 'vip歌曲'
-        # print(uri)
         return uri
 
 
+class MusicApi_kuwo(MusicApi_qq):
+    def __init__(self, song_ids):
+        super(MusicApi_kuwo, self).__init__(song_ids)
+        self.session = requests.session()
+        cookie = "_ga=GA1.2.526731243.1718705002; _gid=GA1.2.1543973888.1718705002; Hm_lvt_cdb524f42f0ce19b169a8071123a4797=1718705002; h5Uuid=08d98230548b48f7a92b7bd084ba45-f7; Hm_lpvt_cdb524f42f0ce19b169a8071123a4797=1718713693; _ga_ETPBRPM9ML=GS1.2.1718713677.2.1.1718713693.44.0.0; Hm_Iuvt_cdb524f42f23cer9b268564v7y735ewrq2324=JXbannkz4r3pXFRW8YNjxzxmSkdxSPRX"
+        self.MusicApi_set_cookie(cookie)
+        self.headers["Secret"] = MusicApi_kuwo_sign().get_Secret(self.cookie)
+
+    @property
+    def get_kuwo_list(self):
+        url = (f"https://bd.kuwo.cn/api/www/playlist/playListInfo?pid={self.song_ids}&pn=1&rn=20&httpsStatus=1&reqId"
+               f"={MusicApi_kuwo_sign().get_ReqId}&plat=web_www&from=")
+        self.headers["Referer"] = "https://bd.kuwo.cn/playlist_detail/" + self.song_ids
+        kuwo_music_list = []
+        ret = self.session.get(url, headers=self.headers).json()
+        for i in ret['data']['musicList']:
+            song_id = i['musicrid'][6:]
+            kuwo_music_list.append({'title': i['album'], 'author': i['artist'],
+                                    'url': 'https://api2.52jan.com/kuwo/%s' % song_id,
+                                    'pic': i['pic'],
+                                    'lrc': 'https://api2.52jan.com/kuwo/lrc/%s.lrc' % song_id,
+                                    'music_id': song_id})
+        return kuwo_music_list
+
+    @property
+    def random_music_list(self):
+        """
+        每日歌单推荐
+        :return:
+        """
+        url = f"https://bd.kuwo.cn/api/www/rcm/index/playlist?id=rcm&pn=1&rn=5&httpsStatus=1&reqId={MusicApi_kuwo_sign().get_ReqId}&plat=web_www&from="
+        self.headers["Referer"] = "https://bd.kuwo.cn/"
+        ret = self.session.get(url, headers=self.headers).text
+        print("酷我每日歌单推荐", ret)
+        return ret
+
+    def get_kuwo_url(self, music_id):
+        url = f"https://bd.kuwo.cn/api/v1/www/music/playUrl?mid={music_id}&type=music&httpsStatus=1&reqId={MusicApi_kuwo_sign().get_ReqId}&plat=web_www&from="
+        self.headers["Referer"] = "https://bd.kuwo.cn/playlist_detail/" + music_id
+        try:
+            ret = self.session.get(url, headers=self.headers).json()
+            uri = ret['data']['url']
+        except Exception as e:
+            # 2000kflac
+            url = f"https://mobi.kuwo.cn/mobi.s?f=web&source=jiakong&type=convert_url_with_sign&rid={music_id}&br=320kmp3"
+            ret = requests.get(url, headers=self.headers).json()
+            uri = ret['data']['url']
+        return uri
+
+    def get_kuwo_lrc(self, music_id):
+        url = f"https://www.kuwo.cn/openapi/v1/www/lyric/getlyric?musicId={music_id}&httpsStatus=1&reqId={MusicApi_kuwo_sign().get_ReqId}&plat=web_www&from="
+        self.headers["Referer"] = "https://www.kuwo.cn/play_detail/" + music_id
+        ret = self.session.get(url, headers=self.headers).text
+        print("酷我音乐歌词", ret)
+        return ret
+
+
 if __name__ == '__main__':
-    tid = "6222311"
-    musicapi = qqmusic(tid)
-    music_list = musicapi.kugou_list()
-    print("酷狗歌单信息：" + json.dumps(music_list))
-    # 获取歌曲源地址
-    # musicapi.kugou_url('0DBB2B56582BE6CB062F79D1D13FE21E')
 
-    musicapi.tid = "7480897649"
-    music_list = musicapi.wyy_discover()
-    print("网易歌单信息：" + json.dumps(music_list))
-    # 获取歌曲源地址
-    # musicapi.wyy_playurl('1413464902')
-    # musicapi.wyy_playurl2('1413464902')
+    song_ids = "6222311"
+    MusicApi = MusicApi_kuwo(song_ids)
+    music_list = MusicApi.get_kugou_list
+    print("酷狗歌单信息：" + json.dumps(music_list, ensure_ascii=False))
 
-    musicapi.tid = "8672698451"
-    music_list = musicapi.get_music_list()
-    print("QQ歌单信息：" + json.dumps(music_list))
-    # 获取歌曲源地址
-    # musicapi.get_music_vkey('003XT6Ef4H6X66')
+    # 获取酷狗歌单第一个歌曲的源地址
+    print("酷狗音乐源地址", MusicApi.get_kugou_url(music_list[0]['music_id']))
+
+    MusicApi.song_ids = "7480897649"
+    music_list = MusicApi.get_wyy_list
+    print("网易云歌单信息：" + json.dumps(music_list, ensure_ascii=False))
+
+    # 获取网易云歌单第一个歌曲的源地址
+    print("网易云音乐源地址", MusicApi.get_wyy_url(music_list[0]['music_id']))
+
+    MusicApi.song_ids = "8672698451"
+    music_list = MusicApi.get_qq_list
+    print("QQ歌单信息：" + json.dumps(music_list, ensure_ascii=False))
+
+    # 获取QQ歌单第一个歌曲的源地址
+    print("QQ音乐源地址", MusicApi.get_qq_url(music_list[0]['music_id']))
+
+    MusicApi.song_ids = "3563672431"
+    music_list = MusicApi.get_kuwo_list
+    print("酷我歌单信息：" + json.dumps(music_list, ensure_ascii=False))
+
+    # 获取酷我歌单第一个歌曲的源地址
+    print("酷我音乐源地址", MusicApi.get_kuwo_url(music_list[0]['music_id']))
+
+    # 酷我每日歌单推荐
+    # music_list = MusicApi.random_music_list

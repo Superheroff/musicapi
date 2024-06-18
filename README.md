@@ -1,7 +1,7 @@
 # 前言
 - 做这个的初衷就是`hexo-tag-aplayer`不稳定且不能满足自己的需求所以才有的这个项目
 - 我的主要用途是构建博客的歌单列表，所以此项目只是以我博客的需求做的接口
-- 目前已支持`酷狗、网易、QQ`音乐
+- 目前已支持`酷狗、网易、QQ、酷我`音乐
 - 浏览[我的歌单](https://www.app966.cn/music/)查看效果
 
 # 为此接口的升级版
@@ -9,19 +9,14 @@
 https://api.i-meto.com/meting/api?server=tencent&type=playlist&id=8672698451
 ```
 
-# 假如你有vip会员
-- 酷狗
-1. 需要拿到的参数`token、userid`，获取途径：APP
-2. 在`kugou()`类初始化时把`self.token`和`self.userid`补全即可
-- 网易云
-1. 需要拿到的参数`cookie`，cookie中包含了`csrf_token、music_u`，获取途径：WEB网页
-2. 在`wyymusic()`类初始化时把`self.MUSIC_U`、`self.csrf_token`和`self.cookie`补全即可
-- QQ音乐
-1. 需要拿到的参数`cookie`，获取途径：WEB网页
-2. 在`qqmusic()`类里面的`get_music_vkey`方法中把`self.header['cookie']`补全即可
+# 如何添加COOKIE以及COOKIE有何作用
+- `MusicApi_set_cookie`此方法添加COOKIE
+  - 如果你有会员的情况下是可以下载或试听会员音乐的（**注：请勿用于商业用途**）
+
 
 # 接口说明
 - **获取歌单列表信息**
+- 本次更新新增酷我音乐接口
 
 - 请求地址：`https://api2.52jan.com`
 - 路径：`/music/songlist`
@@ -29,13 +24,14 @@ https://api.i-meto.com/meting/api?server=tencent&type=playlist&id=8672698451
 - 酷狗音乐示例：`https://api2.52jan.com/music/songlist?server=kugou&id=6222311`
 - 网易云音乐示例：`https://api2.52jan.com/music/songlist?server=wyy&id=7480897649`
 - QQ音乐示例：`https://api2.52jan.com/music/songlist?server=qqmusic&id=8672698451`
-- 尽量不要用我的接口，下载源码自己部署吧
+- 酷我音乐示例：`https://api2.52jan.com/music/songlist?server=kuwo&id=3563672431`
+- **尽量不要用我的接口，下载源码自己部署吧**
 - 查看[接口调用情况](https://www.app966.cn/charts/)
 
 参数名|参数类型|参数描述|参数示例
 ---|---|---|---
-server|string|音乐平台|kugou、wyy、qqmusic
-id|string|歌单ID|6222311、7480897649、8672698451
+server|string|音乐平台|kugou,wyy,qqmusic,kuwo
+id|string|歌单ID|6222311,7480897649,8672698451,3563672431
 
 # 响应参数
 ```
@@ -73,6 +69,7 @@ lrc|string|歌词地址（待解析）
 pic|string|歌曲封面
 title|string|歌曲名
 url|string|歌曲地址（待解析）
+music_id|string|音乐ID
 
 # 闲话
 - 由于歌曲地址会过期，而歌词文件又过大，所以我们先获取歌词、歌曲地址的解析地址，等待用户点击播放后再获取到歌曲、歌词文件；
