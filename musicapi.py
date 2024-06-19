@@ -9,6 +9,7 @@
 import base64
 import hashlib
 import json
+import math
 import random
 import time
 import requests
@@ -17,10 +18,11 @@ from app import kugou_music_sign, MusicApi_wyy_sign, qq_music_sign, MusicApi_kuw
 
 
 class MusicApi_kugou:
-    def __init__(self, song_ids):
+    def __init__(self, song_ids, HOST=None):
         """
         初始化
         """
+        self.HOST = HOST if HOST else 'http://127.0.0.1:5050'
         self.cookie = None
         self.mid = '239526275778893399526700786998289824956'
         self.userid = '0'
@@ -109,9 +111,9 @@ class MusicApi_kugou:
                 name = i['name'].split(' - ')
                 song_id = i['hash']
                 kugou_music_list.append(
-                    {'title': name[1], 'author': name[0], 'url': 'http://api2.52jan.com/kugou/%s' % song_id,
+                    {'title': name[1], 'author': name[0], 'url': f'{self.HOST}/kugou/{song_id}',
                      'pic': i['cover'].replace('/{size}', ''),
-                     'lrc': 'http://api2.52jan.com/kugou/lrc/%s.lrc' % song_id,
+                     'lrc': f'{self.HOST}/kugou/lrc/{song_id}.lrc',
                      'music_id': song_id})
 
         # print(kugou_music_list)
@@ -150,9 +152,9 @@ class MusicApi_wyy(MusicApi_kugou):
             pic = list(i['album']['picUrl'])
             pic.insert(4, 's')
             wyy_music_list.append({'title': i['name'], 'author': author[:-1],
-                                   'url': 'https://api2.52jan.com/wyy/%s' % song_id,
+                                   'url': f'{self.HOST}/wyy/{song_id}',
                                    'pic': ''.join(pic),
-                                   'lrc': 'https://api2.52jan.com/wyy/lrc/%s.lrc' % song_id,
+                                   'lrc': f'{self.HOST}/wyy/lrc/{song_id}.lrc',
                                    'music_id': str(song_id)})
         return wyy_music_list
 
@@ -217,13 +219,13 @@ class MusicApi_qq(MusicApi_wyy):
         super(MusicApi_qq, self).__init__(song_ids)
         self.headers["Referer"] = "https://y.qq.com/"
 
-    def get_qq_lrc(self, mid):
+    def get_qq_lrc(self, music_id):
         """
         QQ音乐歌词接口
-        :param mid: 歌曲id
+        :param music_id: 音乐id
         """
         url = "https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg"
-        params = dict(format="json", songmid=f"{mid}")
+        params = dict(format="json", songmid=f"{music_id}")
         res = requests.get(url, params=params, headers=self.headers).json()
         data = base64.b64decode(res["lyric"]).decode("utf-8")
         # print(data)
@@ -250,9 +252,9 @@ class MusicApi_qq(MusicApi_wyy):
             for x in i['singer']:
                 author += x['name'] + '/'
             qq_music_list.append({'title': i['songname'], 'author': author[:-1],
-                                  'url': 'https://api2.52jan.com/qqmusic/%s' % song_id,
+                                  'url': f'{self.HOST}/qqmusic/{song_id}',
                                   'pic': ''.join(pic),
-                                  'lrc': 'https://api2.52jan.com/qqmusic/lrc/%s.lrc' % song_id,
+                                  'lrc': f'{self.HOST}/qqmusic/lrc/{song_id}.lrc',
                                   'music_id': song_id})
         # print(json.dumps(qq_music_list, ensure_ascii=False))
         return qq_music_list
@@ -313,9 +315,9 @@ class MusicApi_kuwo(MusicApi_qq):
         for i in ret['data']['musicList']:
             song_id = i['musicrid'][6:]
             kuwo_music_list.append({'title': i['album'], 'author': i['artist'],
-                                    'url': 'https://api2.52jan.com/kuwo/%s' % song_id,
+                                    'url': f'{self.HOST}/kuwo/{song_id}',
                                     'pic': i['pic'],
-                                    'lrc': 'https://api2.52jan.com/kuwo/lrc/%s.lrc' % song_id,
+                                    'lrc': f'{self.HOST}/kuwo/lrc/{song_id}.lrc',
                                     'music_id': song_id})
         return kuwo_music_list
 
@@ -345,11 +347,24 @@ class MusicApi_kuwo(MusicApi_qq):
         return uri
 
     def get_kuwo_lrc(self, music_id):
-        url = f"https://www.kuwo.cn/openapi/v1/www/lyric/getlyric?musicId={music_id}&httpsStatus=1&reqId={MusicApi_kuwo_sign().get_ReqId}&plat=web_www&from="
+        url = f"https://www.kuwo.cn/openapi/v1/www/lyric/getlyric?musicId={music_id}&httpsStatus=1&reqId={MusicApi_kuwo_sign().get_ReqId}&plat=web_www&from=lrc"
         self.headers["Referer"] = "https://www.kuwo.cn/play_detail/" + music_id
-        ret = self.session.get(url, headers=self.headers).text
-        print("酷我音乐歌词", ret)
-        return ret
+        ret = self.session.get(url, headers=self.headers).json()
+        # print("酷我音乐歌词", ret)
+        return self.__to_lrc(ret['data']['lrclist'])
+
+    def __to_lrc(self, data):
+        lrc = ''
+        for i in data:
+            start = float(i['time'])
+            hour = math.floor(start) // 3600
+            minute1 = (math.floor(start) - hour * 3600) // 60  # 分
+            minute = (math.floor(start)) // 60  # 分 整数相除自动舍弃秒
+            sec = math.floor(start) - hour * 3600 - minute1 * 60  # 秒
+            minisec = int(math.modf(start)[0] * 100)  # 毫秒
+            lrc += '[' + str(minute).zfill(2) + ':' + str(sec).zfill(2) + ':' + str(minisec).zfill(2) + ']' + i[
+                "lineLyric"]
+        return lrc
 
 
 if __name__ == '__main__':

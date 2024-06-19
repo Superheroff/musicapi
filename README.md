@@ -13,53 +13,74 @@ https://api.i-meto.com/meting/api?server=tencent&type=playlist&id=8672698451
 - `MusicApi_set_cookie`此方法添加COOKIE
   - 如果你有会员的情况下是可以下载或试听会员音乐的（**注：请勿用于商业用途**）
 
+# 如何使用
+1. 下载本项目到本地
+  ```shell
+  git clone https://github.com/Superheroff/musicapi.git
+  ```
+2. 安装环境依赖
+  ```shell
+  pip install -r requirements.txt
+  ```
+3. 运行项目
+  ```shell
+  python main.py
+  ```
 
-# 接口说明
+
+
+# 请求示例
 - **获取歌单列表信息**
-- 本次更新新增酷我音乐接口
-
-- 请求地址：`https://api2.52jan.com`
+- 请求地址：`http://api2.52jan.com`
 - 路径：`/music/songlist`
-- 请求方式：`POST`
-- 酷狗音乐示例：`https://api2.52jan.com/music/songlist?server=kugou&id=6222311`
-- 网易云音乐示例：`https://api2.52jan.com/music/songlist?server=wyy&id=7480897649`
-- QQ音乐示例：`https://api2.52jan.com/music/songlist?server=qqmusic&id=8672698451`
-- 酷我音乐示例：`https://api2.52jan.com/music/songlist?server=kuwo&id=3563672431`
-- **尽量不要用我的接口，下载源码自己部署吧**
-- 查看[接口调用情况](https://www.app966.cn/charts/)
+- 请求方式：`POST,GET`
+- 酷狗音乐示例：`http://127.0.0.1:5050/music/songlist?server=kugou&id=6222311`
+- 网易云音乐示例：`http://127.0.0.1:5050/music/songlist?server=wyy&id=7480897649`
+- QQ音乐示例：`http://127.0.0.1:5050/music/songlist?server=qqmusic&id=8672698451`
+- 酷我音乐示例：`http://127.0.0.1:5050/music/songlist?server=kuwo&id=3563672431`
+- 酷我获取推荐歌单列表示例：`http://127.0.0.1:5050/kuwo/random_music_list`
 
 参数名|参数类型|参数描述|参数示例
 ---|---|---|---
 server|string|音乐平台|kugou,wyy,qqmusic,kuwo
 id|string|歌单ID|6222311,7480897649,8672698451,3563672431
 
-# 响应参数
+# 响应示例
 ```
-[{
-	"author": "Uu(刘梦妤)",
-	"lrc": "https://api2.52jan.com/kugou/lrc/0DBB2B56582BE6CB062F79D1D13FE21E.lrc",
-	"pic": "https://imge.kugou.com/stdmusic/20210616/20210616180124589946.jpg",
-	"title": "小城小爱",
-	"url": "https://api2.52jan.com/kugou/0DBB2B56582BE6CB062F79D1D13FE21E"
-}, {
-	"author": "接个吻，开一枪/火鸡/吕口口/Lambert/杨胖雨",
-	"lrc": "https://api2.52jan.com/wyy/lrc/1413464902.lrc",
-	"pic": "https://p1.music.126.net/A157zQR5rR66LMatjYAucQ==/109951164595606537.jpg",
-	"title": "春风十里报新年",
-	"url": "https://api2.52jan.com/wyy/1413464902"
-}, {
-	"author": "周杰伦",
-	"lrc": "https://api2.52jan.com/qqmusic/lrc/00265Jxe3JzXOJ.lrc",
-	"pic": "https://y.qq.com/music/photo_new/T002R300x300M000000bviBl4FjTpO.jpg",
-	"title": "说了再见",
-	"url": "https://api2.52jan.com/qqmusic/00265Jxe3JzXOJ"
-}, {
-	"author": "李荣浩",
-	"lrc": "https://api2.52jan.com/qqmusic/lrc/001GLG5B45uLhI.lrc",
-	"pic": "https://y.qq.com/music/photo_new/T002R300x300M000002PwL9x3TiVdh.jpg",
-	"title": "乌梅子酱",
-	"url": "https://api2.52jan.com/qqmusic/001GLG5B45uLhI"
-}]
+[
+  {
+    "author": "小霞、海洋Bo",
+    "lrc": "http://127.0.0.1:5050/kugou/lrc/2E6D88A0CA2290BA32B614FC9C7EA43B.lrc",
+    "music_id": "2E6D88A0CA2290BA32B614FC9C7EA43B",
+    "pic": "http://imge.kugou.com/stdmusic/20230607/20230607152301805906.jpg",
+    "title": "向云端",
+    "url": "http://127.0.0.1:5050/kugou/2E6D88A0CA2290BA32B614FC9C7EA43B"
+  },
+  {
+    "author": "张叶蕾",
+    "lrc": "http://127.0.0.1:5050/wyy/lrc/2152040455.lrc",
+    "music_id": "2152040455",
+    "pic": "https://p2.music.126.net/zqd0535UOc3EDJvFf0Ymjw==/109951169555226745.jpg",
+    "title": "爱你",
+    "url": "http://127.0.0.1:5050/wyy/2152040455"
+  },
+  {
+    "author": "任素汐",
+    "lrc": "http://127.0.0.1:5050/qqmusic/lrc/001D51640M6ZeR.lrc",
+    "music_id": "001D51640M6ZeR",
+    "pic": "https://y.qq.com/music/photo_new/T002R300x300M00000003uSK0ttEuV.jpg",
+    "title": "王招君 (你看你拉住我的模样)",
+    "url": "http://127.0.0.1:5050/qqmusic/001D51640M6ZeR"
+  },
+  {
+    "author": "杨宗纬&宝石Gem&王宇宙Leto",
+    "lrc": "http://127.0.0.1:5050/kuwo/lrc/377413145.lrc",
+    "music_id": "377413145",
+    "pic": "https://img2.kuwo.cn/star/albumcover/500/s3s52/26/4134677797.png",
+    "title": "天赐的声音第五季 第5期",
+    "url": "http://127.0.0.1:5050/kuwo/377413145"
+  }
+]
 ```
 
 参数名|参数类型|参数描述
@@ -71,11 +92,8 @@ title|string|歌曲名
 url|string|歌曲地址（待解析）
 music_id|string|音乐ID
 
-# 闲话
-- 由于歌曲地址会过期，而歌词文件又过大，所以我们先获取歌词、歌曲地址的解析地址，等待用户点击播放后再获取到歌曲、歌词文件；
-- 这样既解决了源地址时效问题又解决了歌词文件直接显示过大不美观的问题。
 
 # 声明
-- 本源码仅限用于学习交流，请勿用于商业用途，非法使用与作者无关
+- **本源码仅限用于学习交流，请勿用于商业用途，非法使用与作者无关**
 - 如有侵权请联系我删除
 - 学习交流QQ群：816017833

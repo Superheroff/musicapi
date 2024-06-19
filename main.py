@@ -15,39 +15,58 @@ application.config['JSON_AS_ASCII'] = False
 CORS(application, resources=r'/*')
 
 
-@application.route(rule="/kugou/<song_id>")
+@application.route(rule="/kugou/<song_id>", methods=["GET", "POST"])
 def kugou_url(song_id):
-    kugou = musicapi.MusicApi_kugou(song_id)
-    ret = kugou.get_kugou_url(song_id)
+    MusicApi = musicapi.MusicApi_kugou(song_id)
+    ret = MusicApi.get_kugou_url(song_id)
     return redirect(ret, code=301)
 
 
-@application.route(rule="/kugou/lrc/<song_id>.lrc")
+@application.route(rule="/kugou/lrc/<song_id>.lrc", methods=["GET", "POST"])
 def kugou_lrc(song_id):
-    kugou = musicapi.MusicApi_kugou(song_id)
-    ret = kugou.get_kugou_lrc(song_id)
+    MusicApi = musicapi.MusicApi_kugou(song_id)
+    ret = MusicApi.get_kugou_lrc(song_id)
     return ret
 
 
-@application.route(rule="/wyy/<song_id>")
+@application.route(rule="/wyy/<song_id>", methods=["GET", "POST"])
 def wyy_url(song_id):
-    wyy = musicapi.MusicApi_wyy('')
-    ret = wyy.get_wyy_url(song_id)
+    MusicApi = musicapi.MusicApi_wyy('')
+    ret = MusicApi.get_wyy_url(song_id)
     return redirect(ret, code=301)
 
 
-@application.route(rule="/wyy/lrc/<song_id>.lrc")
+@application.route(rule="/wyy/lrc/<song_id>.lrc", methods=["GET", "POST"])
 def wyy_lrc(song_id):
-    wyy = musicapi.MusicApi_wyy('')
-    ret = wyy.get_wyy_lrc(song_id)
+    MusicApi = musicapi.MusicApi_wyy('')
+    ret = MusicApi.get_wyy_lrc(song_id)
     return ret
 
 
-@application.route(rule="/qqmusic/<song_id>")
+@application.route(rule="/qqmusic/<song_id>", methods=["GET", "POST"])
 def qqmusic_url(song_id):
-    qqmusic = musicapi.MusicApi_qq('')
-    ret = qqmusic.get_qq_url(song_id)
+    MusicApi = musicapi.MusicApi_qq('')
+    ret = MusicApi.get_qq_url(song_id)
     return redirect(ret, code=301)
+
+
+@application.route(rule="/kuwo/<song_id>", methods=["GET", "POST"])
+def kuwo_url(song_id):
+    MusicApi = musicapi.MusicApi_kuwo('')
+    ret = MusicApi.get_kuwo_url(song_id)
+    return redirect(ret, code=301)
+
+
+@application.route(rule="/kuwo/lrc/<song_id>.lrc", methods=["GET", "POST"])
+def kuwo_lrc(song_id):
+    MusicApi = musicapi.MusicApi_kuwo('')
+    return MusicApi.get_kuwo_lrc(song_id)
+
+
+@application.route(rule="/kuwo/random_music_list", methods=["GET", "POST"])
+def kuwo_random_list():
+    MusicApi = musicapi.MusicApi_kuwo('')
+    return MusicApi.random_music_list
 
 
 @application.route(rule="/qqmusic/lrc/<song_id>.lrc")
