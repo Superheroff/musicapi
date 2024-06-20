@@ -22,7 +22,7 @@ class MusicApi_kugou:
         """
         初始化
         """
-        self.HOST = HOST if HOST else 'http://127.0.0.1:5050'
+        self.HOST = HOST if HOST else 'http://127.0.0.1:7878'
         self.cookie = None
         self.mid = '239526275778893399526700786998289824956'
         self.userid = '0'
