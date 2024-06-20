@@ -6,20 +6,29 @@
 @File    : main.py
 @IDE: PyCharm
 """
-from flask import Flask, jsonify, request, redirect
+from flask import Flask, jsonify, request, redirect, make_response
 from flask_cors import CORS
 import musicapi
 
 application = Flask(__name__, static_folder='templates/static')
-application.config['JSON_AS_ASCII'] = False
+application.json.ensure_ascii = False
 CORS(application, resources=r'/*')
+
+
+def __set_no_cache(res):
+    response = make_response(redirect(res, code=301))
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Expires"] = "0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Content-Type"] = "application/x-www-form-urlencoded; charset=utf-8"
+    return response
 
 
 @application.route(rule="/kugou/<song_id>", methods=["GET", "POST"])
 def kugou_url(song_id):
     MusicApi = musicapi.MusicApi_kugou(song_id)
     ret = MusicApi.get_kugou_url(song_id)
-    return redirect(ret, code=301)
+    return __set_no_cache(ret)
 
 
 @application.route(rule="/kugou/lrc/<song_id>.lrc", methods=["GET", "POST"])
@@ -33,7 +42,7 @@ def kugou_lrc(song_id):
 def wyy_url(song_id):
     MusicApi = musicapi.MusicApi_wyy('')
     ret = MusicApi.get_wyy_url(song_id)
-    return redirect(ret, code=301)
+    return __set_no_cache(ret)
 
 
 @application.route(rule="/wyy/lrc/<song_id>.lrc", methods=["GET", "POST"])
@@ -47,14 +56,21 @@ def wyy_lrc(song_id):
 def qqmusic_url(song_id):
     MusicApi = musicapi.MusicApi_qq('')
     ret = MusicApi.get_qq_url(song_id)
-    return redirect(ret, code=301)
+    return __set_no_cache(ret)
+
+
+@application.route(rule="/qqmusic/lrc/<song_id>.lrc")
+def qqmusic_lrc(song_id):
+    MusicApi = musicapi.MusicApi_qq('')
+    ret = MusicApi.get_qq_lrc(song_id)
+    return ret
 
 
 @application.route(rule="/kuwo/<song_id>", methods=["GET", "POST"])
 def kuwo_url(song_id):
     MusicApi = musicapi.MusicApi_kuwo('')
     ret = MusicApi.get_kuwo_url(song_id)
-    return redirect(ret, code=301)
+    return __set_no_cache(ret)
 
 
 @application.route(rule="/kuwo/lrc/<song_id>.lrc", methods=["GET", "POST"])
@@ -67,13 +83,6 @@ def kuwo_lrc(song_id):
 def kuwo_random_list():
     MusicApi = musicapi.MusicApi_kuwo('')
     return MusicApi.random_music_list
-
-
-@application.route(rule="/qqmusic/lrc/<song_id>.lrc")
-def qqmusic_lrc(song_id):
-    qqmusic = musicapi.MusicApi_qq('')
-    ret = qqmusic.get_qq_lrc(song_id)
-    return ret
 
 
 @application.route('/music/songlist', methods=['POST', 'GET'])
@@ -94,8 +103,10 @@ def music_songlist():
             resp = {'msg': '暂不支持此平台'}
     else:
         resp = {'msg': '缺少必要参数'}
-    return jsonify(resp)
+    response = make_response(jsonify(resp))
+    response.headers["Content-Type"] = "application/json"
+    return response
 
 
 if __name__ == "__main__":
-    application.run(host='0.0.0.0', port=5050)
+    application.run(host='0.0.0.0', port=7878)
