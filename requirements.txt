@@ -3,3 +3,4 @@ Flask-Cors==3.0.10
 pycryptodome==3.17
 PyExecJS==1.5.1
 requests==2.28.2
+gevent==24.2.1

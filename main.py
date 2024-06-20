@@ -6,9 +6,14 @@
 @File    : main.py
 @IDE: PyCharm
 """
+from gevent import monkey
+
+monkey.patch_all()
 from flask import Flask, jsonify, request, redirect, make_response
 from flask_cors import CORS
 import musicapi
+from gevent.pywsgi import WSGIServer
+from gevent.pool import Pool
 
 application = Flask(__name__, static_folder='templates/static')
 application.json.ensure_ascii = False
@@ -109,4 +114,6 @@ def music_songlist():
 
 
 if __name__ == "__main__":
-    application.run(host='0.0.0.0', port=7878)
+    print("MusicApi start run")
+    http_server = WSGIServer(('0.0.0.0', 7878), application, spawn=Pool(50))
+    http_server.serve_forever()
