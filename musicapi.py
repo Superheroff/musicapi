@@ -314,7 +314,7 @@ class MusicApi_kuwo(MusicApi_qq):
         ret = self.session.get(url, headers=self.headers).json()
         for i in ret['data']['musicList']:
             song_id = i['musicrid'][6:]
-            kuwo_music_list.append({'title': i['album'], 'author': i['artist'],
+            kuwo_music_list.append({'title': i['name'], 'author': i['artist'],
                                     'url': f'{self.HOST}/kuwo/{song_id}',
                                     'pic': i['pic'],
                                     'lrc': f'{self.HOST}/kuwo/lrc/{song_id}.lrc',
@@ -330,7 +330,7 @@ class MusicApi_kuwo(MusicApi_qq):
         url = f"https://bd.kuwo.cn/api/www/rcm/index/playlist?id=rcm&pn=1&rn=5&httpsStatus=1&reqId={MusicApi_kuwo_sign().get_ReqId}&plat=web_www&from="
         self.headers["Referer"] = "https://bd.kuwo.cn/"
         ret = self.session.get(url, headers=self.headers).text
-        print("酷我每日歌单推荐", ret)
+        # print("酷我每日歌单推荐", ret)
         return ret
 
     def get_kuwo_url(self, music_id):
@@ -362,7 +362,7 @@ class MusicApi_kuwo(MusicApi_qq):
             minute = (math.floor(start)) // 60  # 分 整数相除自动舍弃秒
             sec = math.floor(start) - hour * 3600 - minute1 * 60  # 秒
             minisec = int(math.modf(start)[0] * 100)  # 毫秒
-            lrc += '[' + str(minute).zfill(2) + ':' + str(sec).zfill(2) + ':' + str(minisec).zfill(2) + ']' + i[
+            lrc += '[' + str(minute).zfill(2) + ':' + str(sec).zfill(2) + '.' + str(minisec).zfill(2) + ']' + i[
                 "lineLyric"]
         return lrc
 

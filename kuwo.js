@@ -132,7 +132,7 @@ var ReqId=undefined;
 })
 
 function getReqId(){
-    return ReqId("105")();
+    return ReqId("105")()
 }
 
 // console.log(getReqId())

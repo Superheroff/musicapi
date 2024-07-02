@@ -6,6 +6,8 @@
 @File    : main.py
 @IDE: PyCharm
 """
+import json
+
 from gevent import monkey
 
 monkey.patch_all()
@@ -108,7 +110,7 @@ def music_songlist():
             resp = {'msg': '暂不支持此平台'}
     else:
         resp = {'msg': '缺少必要参数'}
-    response = make_response(jsonify(resp))
+    response = make_response(json.dumps(resp, ensure_ascii=False, separators=(",", ":")))
     response.headers["Content-Type"] = "application/json"
     return response
 
