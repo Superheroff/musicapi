@@ -371,32 +371,45 @@ if __name__ == '__main__':
 
     song_ids = "6222311"
     MusicApi = MusicApi_kuwo(song_ids)
-    music_list = MusicApi.get_kugou_list
-    print("酷狗歌单信息：" + json.dumps(music_list, ensure_ascii=False))
-
-    # 获取酷狗歌单第一个歌曲的源地址
-    print("酷狗音乐源地址", MusicApi.get_kugou_url(music_list[0]['music_id']))
-
-    MusicApi.song_ids = "7480897649"
-    music_list = MusicApi.get_wyy_list
-    print("网易云歌单信息：" + json.dumps(music_list, ensure_ascii=False))
-
-    # 获取网易云歌单第一个歌曲的源地址
-    print("网易云音乐源地址", MusicApi.get_wyy_url(music_list[0]['music_id']))
+    # music_list = MusicApi.get_kugou_list
+    # print("酷狗歌单信息：" + json.dumps(music_list, ensure_ascii=False))
+    #
+    # # 获取酷狗歌单第一个歌曲的源地址
+    # print("酷狗音乐源地址", MusicApi.get_kugou_url(music_list[0]['music_id']))
+    #
+    # MusicApi.song_ids = "7480897649"
+    # music_list = MusicApi.get_wyy_list
+    # print("网易云歌单信息：" + json.dumps(music_list, ensure_ascii=False))
+    #
+    # # 获取网易云歌单第一个歌曲的源地址
+    # print("网易云音乐源地址", MusicApi.get_wyy_url(music_list[0]['music_id']))
+    # # ---------------------下载示例-----------------------
 
     MusicApi.song_ids = "8672698451"
     music_list = MusicApi.get_qq_list
     print("QQ歌单信息：" + json.dumps(music_list, ensure_ascii=False))
 
+    cookie = ""
+    # 下载时设置cookie，否则某些歌曲下载不了
+    MusicApi.MusicApi_set_cookie(cookie)
+
     # 获取QQ歌单第一个歌曲的源地址
-    print("QQ音乐源地址", MusicApi.get_qq_url(music_list[0]['music_id']))
+    # 你要下载几个也可以下载全部（index=len(music_list)），默认是1个
+    index = 1
+    for i in range(index):
+        name = music_list[i]['title']
+        url = MusicApi.get_qq_url(music_list[i]['music_id'])
+        print("QQ音乐源地址", url)
+        print(f"正在下载{name},进度:{round((i+1)/index*100)}%")
+        with open(f"D:\\music\\{name}.mp3", 'wb') as f:
+            f.write(requests.get(url, stream=True).content)
 
-    MusicApi.song_ids = "3563672431"
-    music_list = MusicApi.get_kuwo_list
-    print("酷我歌单信息：" + json.dumps(music_list, ensure_ascii=False))
-
-    # 获取酷我歌单第一个歌曲的源地址
-    print("酷我音乐源地址", MusicApi.get_kuwo_url(music_list[0]['music_id']))
+    # MusicApi.song_ids = "3563672431"
+    # music_list = MusicApi.get_kuwo_list
+    # print("酷我歌单信息：" + json.dumps(music_list, ensure_ascii=False))
+    #
+    # # 获取酷我歌单第一个歌曲的源地址
+    # print("酷我音乐源地址", MusicApi.get_kuwo_url(music_list[0]['music_id']))
 
     # 酷我每日歌单推荐
     # music_list = MusicApi.random_music_list
