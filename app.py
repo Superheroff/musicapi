@@ -20,9 +20,17 @@ def kugou_music_sign(url):
     return hashlib.md5(uri.encode(encoding='utf-8')).hexdigest()
 
 
-def qq_music_sign(param):
+def QQMusicSign(param):
     """
-    QQ音乐sign
+    QQ音乐sign：zzc
+    """
+    param = json.dumps(param, separators=(',', ':'))
+    return execjs.compile(open("node/QQSign.js", "r", encoding="utf-8").read()).call("get_sign", param)
+
+
+def QQMusicSignOld(param):
+    """
+    QQ音乐sign：zzb
     :param param:
     :return:
     """
@@ -100,7 +108,7 @@ class MusicApi_wyy_sign:
 
 class MusicApi_kuwo_sign:
     def __init__(self):
-        with open('./kuwo.js', 'r', encoding='utf-8') as f:
+        with open('node/kuwo.js', 'r', encoding='utf-8') as f:
             js = f.read()
         self.kuwojs = execjs.compile(js)
 

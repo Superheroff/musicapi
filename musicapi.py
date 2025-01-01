@@ -14,7 +14,7 @@ import random
 import time
 import requests
 import http.cookies
-from app import kugou_music_sign, MusicApi_wyy_sign, qq_music_sign, MusicApi_kuwo_sign
+from app import kugou_music_sign, MusicApi_wyy_sign, QQMusicSignOld, QQMusicSign, MusicApi_kuwo_sign
 
 
 class MusicApi_kugou:
@@ -28,7 +28,7 @@ class MusicApi_kugou:
         self.userid = '0'
         self.song_ids = song_ids
         self.headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
         }
 
     def MusicApi_set_cookie(self, cookie):
@@ -269,29 +269,26 @@ class MusicApi_qq(MusicApi_wyy):
         :param music_id: 001GLG5B45uLhI
         :return:
         """
-        i = 1
-        req = 'req_' + str(i)
         # guid会影响成功率，所以要随机
-        while True:
+        self.headers['cookie'] = self.cookie
+        req = ""
+        ret = {}
+        code = 0
+        for y in range(1, 7):
+            req = 'req_' + str(y)
             param = {"comm": {"cv": 4747474, "ct": 24, "format": "json", "inCharset": "utf-8", "outCharset": "utf-8",
-                              "notice": 0, "platform": "yqq.json", "needNewCode": 1, "uin": 838210,
+                              "notice": 0, "platform": "yqq.json", "needNewCode": 1, "uin": 838210720,
                               "g_tk_new_20200303": 744448821, "g_tk": 744448821},
                      req: {"module": "vkey.GetVkeyServer", "method": "CgiGetVkey",
                            "param": {"guid": "794" + self.get_random, "songmid": [music_id], "songtype": [0],
                                      "uin": "838210720",
                                      "loginflag": 1, "platform": "20"}}}
-            url = f'https://u.y.qq.com/cgi-bin/musics.fcg?_={round(time.time() * 1000)}&sign={qq_music_sign(param)}'
-            self.headers['cookie'] = self.cookie
-            ret = requests.post(url=url, data=json.dumps(param, separators=(',', ':')), headers=self.headers).json()
+            sign = QQMusicSignOld(param) if self.headers['cookie'] == "" else QQMusicSign(param)
+            _url = f'https://u.y.qq.com/cgi-bin/musics.fcg?_={round(time.time() * 1000)}&sign={sign}'
+            ret = requests.post(url=_url, data=json.dumps(param, separators=(',', ':')), headers=self.headers).json()
             code = ret['code']
-            if code == 2000:
-                i += 1
-                req = 'req_' + str(i)
-                if i > 7:
-                    break
-            else:
+            if code == 0:
                 break
-
         purl = ret[req]['data']['midurlinfo'][0]['purl']
         uri = random.choice(ret[req]['data']['sip']) + purl if code == 0 and purl != '' else 'vip歌曲'
         return uri
@@ -399,10 +396,10 @@ if __name__ == '__main__':
     for i in range(index):
         name = music_list[i]['title']
         url = MusicApi.get_qq_url(music_list[i]['music_id'])
-        print("QQ音乐源地址", url)
-        print(f"正在下载{name},进度:{round((i+1)/index*100)}%")
-        with open(f"D:\\music\\{name}.mp3", 'wb') as f:
-            f.write(requests.get(url, stream=True).content)
+        print(f"{music_list[i]['title']}音乐地址：", url)
+        # print(f"正在下载{name},进度:{round((i+1)/index*100)}%")
+        # with open(f"D:\\music\\{name}.mp3", 'wb') as f:
+        #     f.write(requests.get(url, stream=True).content)
 
     # MusicApi.song_ids = "3563672431"
     # music_list = MusicApi.get_kuwo_list
