@@ -304,18 +304,22 @@ class MusicApi_kuwo(MusicApi_qq):
 
     @property
     def get_kuwo_list(self):
-        url = (f"https://bd.kuwo.cn/api/www/playlist/playListInfo?pid={self.song_ids}&pn=1&rn=20&httpsStatus=1&reqId"
-               f"={MusicApi_kuwo_sign().get_ReqId}&plat=web_www&from=")
-        self.headers["Referer"] = "https://bd.kuwo.cn/playlist_detail/" + self.song_ids
         kuwo_music_list = []
-        ret = self.session.get(url, headers=self.headers).json()
-        for i in ret['data']['musicList']:
-            song_id = i['musicrid'][6:]
-            kuwo_music_list.append({'title': i['name'], 'author': i['artist'],
-                                    'url': f'{self.HOST}/kuwo/{song_id}',
-                                    'pic': i['pic'],
-                                    'lrc': f'{self.HOST}/kuwo/lrc/{song_id}.lrc',
-                                    'music_id': song_id})
+        for y in range(1, 10):
+            url = (f"https://bd.kuwo.cn/api/www/playlist/playListInfo?pid={self.song_ids}&pn={y}&rn=20&httpsStatus=1&reqId"
+                   f"={MusicApi_kuwo_sign().get_ReqId}&plat=web_www&from=")
+            self.headers["Referer"] = "https://bd.kuwo.cn/playlist_detail/" + self.song_ids
+            ret = self.session.get(url, headers=self.headers).json()
+            musicList = ret['data']['musicList']
+            for i in musicList:
+                song_id = i['musicrid'][6:]
+                kuwo_music_list.append({'title': i['name'], 'author': i['artist'],
+                                        'url': f'{self.HOST}/kuwo/{song_id}',
+                                        'pic': i['pic'],
+                                        'lrc': f'{self.HOST}/kuwo/lrc/{song_id}.lrc',
+                                        'music_id': song_id})
+            if len(musicList) < 20:
+                break
         return kuwo_music_list
 
     @property
