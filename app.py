@@ -21,19 +21,11 @@ def kugou_music_sign(url):
 
 
 def QQMusicSign(param):
-    """
-    QQ音乐sign：zzc
-    """
     param = json.dumps(param, separators=(',', ':'))
     return execjs.compile(open("node/QQSign.js", "r", encoding="utf-8").read()).call("get_sign", param)
 
 
 def QQMusicSignOld(param):
-    """
-    QQ音乐sign：zzb
-    :param param:
-    :return:
-    """
     k1 = {"0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "A": 10, "B": 11, "C": 12,
           "D": 13, "E": 14, "F": 15}
     l1 = [212, 45, 80, 68, 195, 163, 163, 203, 157, 220, 254, 91, 204, 79, 104, 6]
