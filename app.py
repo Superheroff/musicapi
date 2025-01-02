@@ -8,11 +8,6 @@ import execjs
 
 
 def kugou_music_sign(url):
-    """
-    计算酷狗sign
-    :param url:
-    :return:
-    """
     uri = url.split('?')[1]
     uri_list = uri.split('&')
     ordered_list = sorted(uri_list)
