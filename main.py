@@ -1,29 +1,29 @@
 # -*- coding: utf-8 -*-
 """
-@Time    : 2023/3/25 19:47
-@Author  : superhero
-@Email   : 838210720@qq.com
-@File    : main.py
-@IDE: PyCharm
+@Time    : 2026/05/25 21:47
 """
+
 import json
 
-from gevent import monkey
-
-monkey.patch_all()
-from flask import Flask, jsonify, request, redirect, make_response
-from flask_cors import CORS
+from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse, Response
+import uvicorn
 import musicapi
-from gevent.pywsgi import WSGIServer
-from gevent.pool import Pool
 
-application = Flask(__name__, static_folder='templates/static')
-application.json.ensure_ascii = False
-CORS(application, resources=r'/*')
+app = FastAPI(title="Music API", version="2.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
-def __set_no_cache(res):
-    response = make_response(redirect(res, code=301))
+def _no_cache_redirect(url: str) -> RedirectResponse:
+    response = RedirectResponse(url=url, status_code=301)
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     response.headers["Expires"] = "0"
     response.headers["Pragma"] = "no-cache"
@@ -31,73 +31,72 @@ def __set_no_cache(res):
     return response
 
 
-@application.route(rule="/kugou/<song_id>", methods=["GET", "POST"])
-def kugou_url(song_id):
+@app.api_route("/kugou/{song_id}", methods=["GET", "POST"], tags=["酷狗API"])
+async def kugou_url(song_id: str):
     MusicApi = musicapi.MusicApi_kugou(song_id)
     ret = MusicApi.get_kugou_url(song_id)
-    return __set_no_cache(ret)
+    return _no_cache_redirect(ret)
 
 
-@application.route(rule="/kugou/lrc/<song_id>.lrc", methods=["GET", "POST"])
-def kugou_lrc(song_id):
+@app.api_route("/kugou/lrc/{song_id}.lrc", methods=["GET", "POST"], tags=["酷狗API"])
+async def kugou_lrc(song_id: str):
     MusicApi = musicapi.MusicApi_kugou(song_id)
     ret = MusicApi.get_kugou_lrc(song_id)
-    return ret
+    return Response(content=ret, media_type="text/plain; charset=utf-8")
 
 
-@application.route(rule="/wyy/<song_id>", methods=["GET", "POST"])
-def wyy_url(song_id):
+@app.api_route("/wyy/{song_id}", methods=["GET", "POST"], tags=["网易音乐API"])
+async def wyy_url(song_id: str):
     MusicApi = musicapi.MusicApi_wyy('')
     ret = MusicApi.get_wyy_url(song_id)
-    return __set_no_cache(ret)
+    return _no_cache_redirect(ret)
 
 
-@application.route(rule="/wyy/lrc/<song_id>.lrc", methods=["GET", "POST"])
-def wyy_lrc(song_id):
+@app.api_route("/wyy/lrc/{song_id}.lrc", methods=["GET", "POST"], tags=["网易音乐API"])
+async def wyy_lrc(song_id: str):
     MusicApi = musicapi.MusicApi_wyy('')
     ret = MusicApi.get_wyy_lrc(song_id)
-    return ret
+    return Response(content=ret, media_type="text/plain; charset=utf-8")
 
 
-@application.route(rule="/qqmusic/<song_id>", methods=["GET", "POST"])
-def qqmusic_url(song_id):
+@app.api_route("/qqmusic/{song_id}", methods=["GET", "POST"], tags=["QQ音乐API"])
+async def qqmusic_url(song_id: str):
     MusicApi = musicapi.MusicApi_qq('')
     ret = MusicApi.get_qq_url(song_id)
-    return __set_no_cache(ret)
+    return _no_cache_redirect(ret)
 
 
-@application.route(rule="/qqmusic/lrc/<song_id>.lrc")
-def qqmusic_lrc(song_id):
+@app.api_route("/qqmusic/lrc/{song_id}.lrc", methods=["GET", "POST"], tags=["QQ音乐API"])
+async def qqmusic_lrc(song_id: str):
     MusicApi = musicapi.MusicApi_qq('')
     ret = MusicApi.get_qq_lrc(song_id)
-    return ret
+    return Response(content=ret, media_type="text/plain; charset=utf-8")
 
 
-@application.route(rule="/kuwo/<song_id>", methods=["GET", "POST"])
-def kuwo_url(song_id):
+@app.api_route("/kuwo/{song_id}", methods=["GET", "POST"], tags=["酷我音乐API"])
+async def kuwo_url(song_id: str):
     MusicApi = musicapi.MusicApi_kuwo('')
     ret = MusicApi.get_kuwo_url(song_id)
-    return __set_no_cache(ret)
+    return _no_cache_redirect(ret)
 
 
-@application.route(rule="/kuwo/lrc/<song_id>.lrc", methods=["GET", "POST"])
-def kuwo_lrc(song_id):
+@app.api_route("/kuwo/lrc/{song_id}.lrc", methods=["GET", "POST"], tags=["酷我音乐API"])
+async def kuwo_lrc(song_id: str):
     MusicApi = musicapi.MusicApi_kuwo('')
-    return MusicApi.get_kuwo_lrc(song_id)
+    ret = MusicApi.get_kuwo_lrc(song_id)
+    return Response(content=ret, media_type="text/plain; charset=utf-8")
 
 
-@application.route(rule="/kuwo/random_music_list", methods=["GET", "POST"])
-def kuwo_random_list():
+@app.api_route("/kuwo/random_music_list", methods=["GET", "POST"], tags=["酷我音乐API"])
+async def kuwo_random_list():
     MusicApi = musicapi.MusicApi_kuwo('')
-    return MusicApi.random_music_list
+    return Response(content=MusicApi.random_music_list, media_type="application/json; charset=utf-8")
 
 
-@application.route('/music/songlist', methods=['POST', 'GET'])
-def music_songlist():
-    server = request.values.get('server', '')
-    t_id = request.values.get('id', '')
-    music_info = musicapi.MusicApi_kuwo(t_id)
-    if server and t_id:
+@app.api_route("/music/songlist", methods=["GET", "POST"], tags=["歌单列表"])
+async def music_songlist(server: str = Query(""), id: str = Query("")):
+    music_info = musicapi.MusicApi_kuwo(id)
+    if server and id:
         if server == 'kugou':
             resp = music_info.get_kugou_list
         elif server == 'wyy':
@@ -110,12 +109,12 @@ def music_songlist():
             resp = {'msg': '暂不支持此平台'}
     else:
         resp = {'msg': '缺少必要参数'}
-    response = make_response(json.dumps(resp, ensure_ascii=False, separators=(",", ":")))
-    response.headers["Content-Type"] = "application/json"
-    return response
+    return Response(
+        content=json.dumps(resp, ensure_ascii=False, separators=(",", ":")),
+        media_type="application/json",
+    )
 
 
 if __name__ == "__main__":
     print("MusicApi start run")
-    http_server = WSGIServer(('0.0.0.0', 7878), application, spawn=Pool(50))
-    http_server.serve_forever()
+    uvicorn.run(app, host="0.0.0.0", port=7878)

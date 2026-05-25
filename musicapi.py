@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 @Time    : 2023/3/25 18:52
-@Author  : superhero
-@Email   : 838210720@qq.com
 @File    : musicapi.py
 @IDE: PyCharm
 """
@@ -15,7 +13,7 @@ import time
 import requests
 import http.cookies
 from app import kugou_music_sign, MusicApi_wyy_sign, QQMusicSignOld, QQMusicSign, MusicApi_kuwo_sign
-
+from kuwoutils import KuwoMusicClientUtils
 
 class MusicApi_kugou:
     def __init__(self, song_ids, HOST=None):
@@ -28,7 +26,7 @@ class MusicApi_kugou:
         self.userid = '0'
         self.song_ids = song_ids
         self.headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
         }
 
     def MusicApi_set_cookie(self, cookie):
@@ -331,21 +329,22 @@ class MusicApi_kuwo(MusicApi_qq):
         url = f"https://bd.kuwo.cn/api/www/rcm/index/playlist?id=rcm&pn=1&rn=5&httpsStatus=1&reqId={MusicApi_kuwo_sign().get_ReqId}&plat=web_www&from="
         self.headers["Referer"] = "https://bd.kuwo.cn/"
         ret = self.session.get(url, headers=self.headers).text
-        # print("酷我每日歌单推荐", ret)
         return ret
 
     def get_kuwo_url(self, music_id):
-        url = f"https://bd.kuwo.cn/api/v1/www/music/playUrl?mid={music_id}&type=music&httpsStatus=1&reqId={MusicApi_kuwo_sign().get_ReqId}&plat=web_www&from="
-        self.headers["Referer"] = "https://bd.kuwo.cn/playlist_detail/" + music_id
         try:
-            ret = self.session.get(url, headers=self.headers).json()
-            uri = ret['data']['url']
-        except Exception as e:
-            # 2000kflac
-            url = f"https://mobi.kuwo.cn/mobi.s?f=web&source=jiakong&type=convert_url_with_sign&rid={music_id}&br=320kmp3"
-            ret = requests.get(url, headers=self.headers).json()
-            uri = ret['data']['url']
-        return uri
+            self.headers["user-agent"] = "okhttp/3.14.9"
+            query = f'user=0&corp=kuwo&source=kwplayer_ar_6.4.1.1_B_jiakong_vh.apk&p2p=1&type=convert_url2&sig=0&format=128kmp3&rid={music_id}'
+            url = f"http://mobi.kuwo.cn/mobi.s?f=kuwo&q={KuwoMusicClientUtils.encryptquery(query)}"
+            result = requests.get(url, headers=self.headers).text
+            if 'url=' not in result:
+                print("获取酷我音乐源地址失败")
+                return ''
+            result = result.split('url=')[1].split('\n')[0]
+        except Exception:
+            pass
+            result = ''
+        return result
 
     def get_kuwo_lrc(self, music_id):
         url = f"https://www.kuwo.cn/openapi/v1/www/lyric/getlyric?musicId={music_id}&httpsStatus=1&reqId={MusicApi_kuwo_sign().get_ReqId}&plat=web_www&from=lrc"
@@ -370,8 +369,8 @@ class MusicApi_kuwo(MusicApi_qq):
 
 if __name__ == '__main__':
 
-    song_ids = "6222311"
-    MusicApi = MusicApi_kuwo(song_ids)
+    # song_ids = "6222311"
+    # MusicApi = MusicApi_kuwo(song_ids)
     # music_list = MusicApi.get_kugou_list
     # print("酷狗歌单信息：" + json.dumps(music_list, ensure_ascii=False))
     #
@@ -384,32 +383,30 @@ if __name__ == '__main__':
     #
     # # 获取网易云歌单第一个歌曲的源地址
     # print("网易云音乐源地址", MusicApi.get_wyy_url(music_list[0]['music_id']))
-    # # ---------------------下载示例-----------------------
+    # ---------------------下载示例-----------------------
 
-    MusicApi.song_ids = "8672698451"
-    music_list = MusicApi.get_qq_list
-    print("QQ歌单信息：" + json.dumps(music_list, ensure_ascii=False))
+    # MusicApi.song_ids = "8672698451"
+    # music_list = MusicApi.get_qq_list
+    # print("QQ歌单信息：" + json.dumps(music_list, ensure_ascii=False))
 
     cookie = ""
     # 下载时设置cookie，否则某些歌曲下载不了
-    MusicApi.MusicApi_set_cookie(cookie)
+    # MusicApi.MusicApi_set_cookie(cookie)
 
     # 获取QQ歌单第一个歌曲的源地址
     # 你要下载几个也可以下载全部（index=len(music_list)），默认是1个
-    index = 1
-    for i in range(index):
-        name = music_list[i]['title']
-        url = MusicApi.get_qq_url(music_list[i]['music_id'])
-        print(f"{music_list[i]['title']}音乐地址：", url)
+    # index = 1
+    # for i in range(index):
+    #     name = music_list[i]['title']
+    #     url = MusicApi.get_qq_url(music_list[i]['music_id'])
+    #     print(f"{music_list[i]['title']}音乐地址：", url)
         # print(f"正在下载{name},进度:{round((i+1)/index*100)}%")
         # with open(f"D:\\music\\{name}.mp3", 'wb') as f:
         #     f.write(requests.get(url, stream=True).content)
-
     # MusicApi.song_ids = "3563672431"
     # music_list = MusicApi.get_kuwo_list
     # print("酷我歌单信息：" + json.dumps(music_list, ensure_ascii=False))
-    #
-    # # 获取酷我歌单第一个歌曲的源地址
+    # 获取酷我歌单第一个歌曲的源地址
     # print("酷我音乐源地址", MusicApi.get_kuwo_url(music_list[0]['music_id']))
 
     # 酷我每日歌单推荐

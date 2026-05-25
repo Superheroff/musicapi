@@ -1,0 +1,17 @@
+[project]
+name = "musicapi"
+version = "2.0"
+description = "音乐歌单接口，不含搜索功能，适用于个人博客"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn>=0.34.0",
+    "pycryptodome>=3.23.0",
+    "pyexecjs>=1.5.1",
+    "requests>=2.34.2",
+]
+
+[[tool.uv.index]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true

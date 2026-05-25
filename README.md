@@ -1,27 +1,28 @@
 # 前言
 - 做这个的初衷就是[Meting](https://github.com/metowolf/Meting)这个项目不稳定且不能满足自己的需求所以才有的这个项目
-- 我的主要用途是构建博客的歌单列表，所以此项目只是以我博客的需求做的接口
+- 我的主要用途是构建博客的歌单列表，所以此项目只是以我博客的需求做的接口，**不支持`搜索`功能，要搜索需要自己完成**
 - 目前已支持`酷狗、网易、QQ、酷我`音乐
 - 浏览[我的歌单](https://www.app966.cn/music/)查看效果
 
 # 如何添加COOKIE以及COOKIE有何作用
 - `MusicApi_set_cookie`此方法添加COOKIE
-- 如果你有会员的情况下是可以下载或试听会员音乐的(**注：禁止商业用途**)
 
 # 如何使用
 1. 下载本项目到本地
   ```shell
   git clone https://github.com/Superheroff/musicapi.git
   ```
-2. 安装环境依赖
+2. 安装环境依赖，需要先安装`uv`
   ```shell
-  pip install -r requirements.txt
+  uv sync
   ```
 3. 运行项目
   ```shell
-  python main.py
+  uv run main.py
   ```
-
+- 项目默认监听端口为`7878`
+- swagger文档地址：[/docs](http://127.0.0.1:7878/docs)，
+- redoc文档地址：[/redoc](http://127.0.0.1:7878/redoc)
 
 
 # 请求示例
