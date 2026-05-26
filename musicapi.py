@@ -333,16 +333,22 @@ class MusicApi_kuwo(MusicApi_qq):
 
     def get_kuwo_url(self, music_id):
         try:
-            self.headers["user-agent"] = "okhttp/3.14.9"
-            query = f'user=0&corp=kuwo&source=kwplayer_ar_6.4.1.1_B_jiakong_vh.apk&p2p=1&type=convert_url2&sig=0&format=128kmp3&rid={music_id}'
-            url = f"http://mobi.kuwo.cn/mobi.s?f=kuwo&q={KuwoMusicClientUtils.encryptquery(query)}"
-            result = requests.get(url, headers=self.headers).text
-            if 'url=' not in result:
-                print("获取酷我音乐源地址失败")
-                return ''
-            result = result.split('url=')[1].split('\n')[0]
-        except Exception:
-            pass
+            url = f"https://bd.kuwo.cn/api/v1/www/music/playUrl?mid={music_id}&type=music&httpsStatus=1&reqId={MusicApi_kuwo_sign().get_ReqId}&plat=web_www&from="
+            self.headers["Referer"] = "https://bd.kuwo.cn/playlist_detail/" + music_id
+            ret = self.session.get(url, headers=self.headers).json()
+            if ret.get('msg') == 'success':
+                play_url = ret['data']['url']
+                result = play_url
+            else:
+                query = f'user=0&corp=kuwo&source=kwplayer_ar_6.4.1.1_B_jiakong_vh.apk&p2p=1&type=convert_url2&sig=0&format=128kmp3&rid={music_id}'
+                url = f"http://mobi.kuwo.cn/mobi.s?f=kuwo&q={KuwoMusicClientUtils.encryptquery(query)}"
+                result = requests.get(url, headers={"user-agent": "okhttp/3.14.9"}).text
+                if 'url=' not in result:
+                    print("获取酷我音乐源地址失败")
+                    return ''
+                result = result.split('url=')[1].split('\n')[0]
+        except Exception as e:
+            print(e)
             result = ''
         return result
 
